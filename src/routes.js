@@ -62,7 +62,7 @@ const routes = [
 
 
     { path: '/', exact: true, name: 'Home' },
-    { path: '/logout', name: 'Logout', element: Logout },
+    { path: '/out', name: 'Logout', element: Logout },
     { path: '/dashboard', name: 'Dashboard', element: Dashboard },
     { path: '/theme', name: 'Theme', element: Colors, exact: true },
     { path: '/theme/colors', name: 'Colors', element: Colors },

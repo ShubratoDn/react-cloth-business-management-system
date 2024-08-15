@@ -50,6 +50,7 @@ const Login = () => {
                 console.log(err.response)
                 if (err.code === 'ERR_NETWORK') {
                     setErrorMessage("Failed to create connection with backend. Please contact with Shubrato")
+                    return;
                 }
 
                 setErrorMessage(err.response.data.message);

@@ -29,33 +29,33 @@ const AddUser = () => {
             isLocked: false
         },
         validationSchema: Yup.object({
-            // name: Yup.string()
-            //     .required('Name is required')
-            //     .min(3, 'Name should be at least 3 characters'),
-            // phone: Yup.string()
-            //     .required('Phone is required')
-            //     .matches(/^[0-9]+$/, 'Phone must be a number'),
-            // email: Yup.string()
-            //     .email('Invalid email format')
-            //     .notRequired(),
-            // address: Yup.string()
-            //     .required('Address is required'),
-            // password: Yup.string()
-            //     .required('Password is required')
-            //     .min(4, 'Password should be at least 4 characters'),
-            // confirmPassword: Yup.string()
-            //     .required('Confirm your password')
-            //     .oneOf([Yup.ref('password'), null], 'Passwords must match'),
-            // designation: Yup.string()
-            //     .required('Designation is required'),
-            // userImage: Yup.mixed()
-            //     .required('User image is required')
-            //     .test('fileSize', 'File size is too large. Maximum size is 5MB', value => {
-            //         return value ? value.size <= 5000000 : true;
-            //     })
-            //     .test('fileType', 'Invalid file type. Supported formats: JPEG, PNG, GIF', value => {
-            //         return value ? ['image/jpeg', 'image/png', 'image/gif'].includes(value.type) : true;
-            //     })
+            name: Yup.string()
+                .required('Name is required')
+                .min(3, 'Name should be at least 3 characters'),
+            phone: Yup.string()
+                .required('Phone is required')
+                .matches(/^[0-9]+$/, 'Phone must be a number'),
+            email: Yup.string()
+                .email('Invalid email format')
+                .notRequired(),
+            address: Yup.string()
+                .required('Address is required'),
+            password: Yup.string()
+                .required('Password is required')
+                .min(4, 'Password should be at least 4 characters'),
+            confirmPassword: Yup.string()
+                .required('Confirm your password')
+                .oneOf([Yup.ref('password'), null], 'Passwords must match'),
+            designation: Yup.string()
+                .required('Designation is required'),
+            userImage: Yup.mixed()
+                .required('User image is required')
+                .test('fileSize', 'File size is too large. Maximum size is 5MB', value => {
+                    return value ? value.size <= 5000000 : true;
+                })
+                .test('fileType', 'Invalid file type. Supported formats: JPEG, PNG, GIF', value => {
+                    return value ? ['image/jpeg', 'image/png', 'image/gif'].includes(value.type) : true;
+                })
         }),
         onSubmit: (values, { resetForm }) => {
 
@@ -94,7 +94,7 @@ const AddUser = () => {
                         return;
                     }
 
-                    
+
                     const errMessages = Object.entries(err.response.data).map(([key, value]) => {
                         toast.error(`${value}`, {
                             position: "bottom-center",
@@ -134,11 +134,14 @@ const AddUser = () => {
             <CCardBody>
                 <form onSubmit={formik.handleSubmit} className="row position-relative">
 
-                    {(message.error || message.success) && 
-                        <div className={message.error ? "alert alert-danger mt-3" : "alert alert-success mt-3"} role="alert">
-                            {message.error}
-                            {message.success}
-                    </div>}
+                    {(message.error || message.success) &&
+                        <div className='p-2'>
+                            <div className={message.error ? "alert alert-danger mt-3" : "alert alert-success mt-3"} role="alert">
+                                {message.error}
+                                {message.success}
+                            </div>
+                        </div>
+                    }
 
                     {isLoading && <div className="loaderContainer"><div className='loader'></div></div>}
                     <div className="form-group col-md-6 mb-3">

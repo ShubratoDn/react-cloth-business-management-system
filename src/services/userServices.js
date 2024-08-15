@@ -1,4 +1,5 @@
 import { axiosRequest } from "../configs/axiosConfig"
+import { jsonToFormData } from "./utils"
 
 
 //user login service
@@ -9,6 +10,7 @@ export const userLogin = async (loginDetails) => {
 
 
 export const userRegister = async (userDetails) =>{
-    return await axiosRequest.post("/auth/register", userDetails)
+    const formData = jsonToFormData(userDetails)
+    return await axiosRequest.post("/auth/register", formData)
         .then((response) => response.data)
 }
