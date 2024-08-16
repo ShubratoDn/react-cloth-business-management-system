@@ -77,6 +77,7 @@ const AddUser = () => {
                         theme: "dark",
                     });
 
+                    resetForm({ values: "" })
                     setMessage({ success: "User registration successfull." });
 
                 })
