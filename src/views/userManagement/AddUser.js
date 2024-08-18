@@ -62,7 +62,7 @@ const AddUser = () => {
             setLoading(true);
             setMessage({});
 
-            console.log('Form values', values)
+            // console.log('Form values', values)
 
             userRegister(values)
                 .then((response) => {
@@ -82,7 +82,7 @@ const AddUser = () => {
 
                 })
                 .catch((err) => {
-                    console.log(err.response.data);
+                    // console.log(err.response.data);
 
                     if (err.code === 'ERR_NETWORK') {
                         // handle connection refused error

@@ -1,6 +1,7 @@
 import React from 'react'
 import Logout from './views/auth/Logout'
 import AddUser from './views/userManagement/AddUser'
+import AddUserRole from 'views/userRole/AddUserRole'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
@@ -56,13 +57,19 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 const routes = [
     // USER MANAGEMENT JSON
     // { path: '/user', exact: true, name: 'Find Elements', element: },
-    { path: '/user/add', exact: true, name: 'Add User', element: AddUser, roleRequired: "ROLE_USER_CREATE" },
+    { path: '/user/add', name: 'Add User', element: AddUser, roleRequired: "ROLE_USER_CREATE" },
     // USER MANAGEMENT JSON ENDS
 
 
 
+    //USER ROLE
+    { path: '/role/add', name: 'Add Role', element: AddUserRole, roleRequired: "ROLE_ROLE_CREATE" },
+
+    //USER ROLE ENDS
+
+
     { path: '/', exact: true, name: 'Home' },
-    { path: '/out', name: 'Logout', element: Logout },
+    { path: '/logout', name: 'Logout', element: Logout },
     { path: '/dashboard', name: 'Dashboard', element: Dashboard },
     { path: '/theme', name: 'Theme', element: Colors, exact: true },
     { path: '/theme/colors', name: 'Colors', element: Colors },
