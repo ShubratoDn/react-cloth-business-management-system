@@ -5,6 +5,7 @@ import * as Yup from 'yup'
 import { userRegister } from '../../services/userServices'
 
 import { toast } from 'react-toastify'
+import { addRole } from 'services/userRoleService';
 
 const AddUserRole = () => {
 
@@ -36,7 +37,7 @@ const AddUserRole = () => {
 
             // console.log('Form values', values)
 
-            userRegister(values)
+            addRole(values)
                 .then((response) => {
                     toast.success('Role added successfull!', {
                         position: "bottom-center",
@@ -68,15 +69,21 @@ const AddUserRole = () => {
                     }
 
 
-                    const errMessages = Object.entries(err.response.data).map(([key, value]) => {
-                        toast.error(`${value}`, {
+                    // const errMessages = Object.entries(err.response.data).map(([key, value]) => {
+                    //     toast.error(`${value}`, {
+                    //         position: "bottom-center",
+                    //         theme: "dark",
+                    //     });
+                    //     return `${value}`;
+                    // }).join(", ");
+
+                    const errMessages = err.response.data.error;
+
+                    setMessage({ error: errMessages });
+                        toast.error(`${errMessages}`, {
                             position: "bottom-center",
                             theme: "dark",
                         });
-                        return `${value}`;
-                    }).join(", ");
-
-                    setMessage({ error: errMessages });
 
                 })
                 .finally(() => {
@@ -96,6 +103,20 @@ const AddUserRole = () => {
             </CCardHeader>
             <CCardBody>
                 <form onSubmit={formik.handleSubmit} className="row position-relative">
+
+                    {/* LOADER AND SERVER MESSAGE */}
+                    {(message.error || message.success) &&
+                        <div className='p-2'>
+                            <div className={message.error ? "alert alert-danger mt-3" : "alert alert-success mt-3"} role="alert">
+                                {message.error}
+                                {message.success}
+                            </div>
+                        </div>
+                    }
+                    {isLoading && <div className="loaderContainer"><div className='loader'></div></div>}
+                    {/* LOADER AND SERVER MESSAGE */}
+
+
                     <div className="form-group col-md-6 mb-3">
                         <label htmlFor="role" className="mb-2 text-muted">Role Name</label>
                         <input

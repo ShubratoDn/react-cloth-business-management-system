@@ -2,6 +2,8 @@ import React from 'react'
 import Logout from './views/auth/Logout'
 import AddUser from './views/userManagement/AddUser'
 import AddUserRole from 'views/userRole/AddUserRole'
+import AllRoles from 'views/userRole/AllRoles'
+import { exact } from 'prop-types'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
@@ -63,6 +65,8 @@ const routes = [
 
 
     //USER ROLE
+    { path: '/role', exact:true, element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
+    { path: '/role/all', name: 'All Roles', element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
     { path: '/role/add', name: 'Add Role', element: AddUserRole, roleRequired: "ROLE_ROLE_CREATE" },
 
     //USER ROLE ENDS
