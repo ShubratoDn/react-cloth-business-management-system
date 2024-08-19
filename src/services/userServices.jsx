@@ -14,3 +14,15 @@ export const userRegister = async (userDetails) =>{
     return await axiosRequest.post("/auth/register", formData)
         .then((response) => response.data)
 }
+
+
+export const searchUsers = async (query, page, size)=>{
+    return await axiosRequest.get(`/users/search?page=${page}&size=${size}&query=${query}`)
+    .then((response) => response.data)
+}
+
+
+export const getUserById = async (id)=>{
+    return await axiosRequest.get(`/users/${id}`)
+    .then((response) => response.data)
+}

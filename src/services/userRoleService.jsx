@@ -16,3 +16,9 @@ export const updateRoleStatus = async (id) => {
     return await axiosRequest.put(`/roles/${id}/updateStatus`)
     .then((response) => response.data);
 };
+
+
+export const getAllRoles = async ()=>{
+    return await axiosRequest.get(`/roles/all`)
+    .then((response) => response.data)
+}

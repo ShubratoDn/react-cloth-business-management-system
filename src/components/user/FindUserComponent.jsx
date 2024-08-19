@@ -1,11 +1,15 @@
-import { CCard, CCardBody, CCardHeader } from '@coreui/react'
+import { CCard, CCardBody, CCardHeader } from '@coreui/react';
+import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { toast } from 'react-toastify'
-import { userHasRole } from 'services/auth';
-import { searchRoles, updateRoleStatus } from 'services/userRoleService';
+import { toast } from 'react-toastify';
+import { searchRoles } from 'services/userRoleService';
+import { searchUsers } from 'services/userServices';
 
-const AllRoles = () => {
+const FindUserComponent = ({ hasUpdatePermission, hasAssignRolePermission, title, onAssignRoleClick }) => {
+
+
+
     const [query, setQuery] = useState('');
     const [isLoading, setLoading] = useState(false);
     const [message, setMessage] = useState({});
@@ -13,13 +17,19 @@ const AllRoles = () => {
     const [data, setData] = useState(null);
     const [page, setPage] = useState(0);
 
-    const getAllRoles = () => {
+    const handleSearch = (event) => {
+        setQuery(event.target.value);
+        setPage(0); // Reset to page 0 when a new search is performed
+    };
+
+
+
+    const getAllUsers = () => {
         setLoading(true);
-        searchRoles(query, page, 10)
+        searchUsers(query, page, 10)
             .then((response) => {
                 setData(response);
                 if (page === 0) {
-                    // If it's a new search, replace the content
                     setContent(response.content);
                 } else {
                     // Otherwise, append the new data
@@ -51,59 +61,24 @@ const AllRoles = () => {
     };
 
     useEffect(() => {
-        getAllRoles();
+        getAllUsers();
     }, [page, query]); // Trigger the effect on page or query change
 
     const requestForData = () => {
         setPage((prevPage) => prevPage + 1);
     };
 
-    const handleSearch = (event) => {
-        setQuery(event.target.value);
-        setPage(0); // Reset to page 0 when a new search is performed
-    };
-
-
-
-
-
-
-
-    const handleStatusUpdate = (id) => {
-        updateRoleStatus(id)
-            .then(() => {
-                // Update the role status locally to reflect the change
-                setContent(prevContent =>
-                    prevContent.map(role =>
-                        role.id === id ? { ...role, isActive: !role.isActive } : role
-                    )
-                );
-                toast.success('Role status updated successfully!', {
-                    position: "bottom-center",
-                    theme: "dark",
-                });
-            })
-            .catch((err) => {
-                toast.error('Failed to update role status. ' + err.response.data.message, {
-                    position: "bottom-center",
-                    theme: "dark",
-                });
-            });
-    };
-
-
-
     return (
-        <div>
+        <>
             <form>
                 <div className="form-group mb-3">
-                    <label className="mb-2 text-muted">Search Query</label>
+                    <label className="mb-2 text-muted">Search User</label>
                     <div className='d-flex'>
                         <input
                             type="text"
                             name="query"
                             className='form-control me-3'
-                            placeholder="Type queries for search role"
+                            placeholder="Type queries for search user"
                             value={query}
                             onChange={handleSearch}
                             onKeyUp={handleSearch} // Debounced search could be more efficient here
@@ -123,9 +98,10 @@ const AllRoles = () => {
                 </div>
             }
 
+
             <CCard>
                 <CCardHeader>
-                    <h4>Search Results</h4>
+                    <h4>{title ? title : "Search Results"}</h4>
                 </CCardHeader>
                 <CCardBody>
                     <InfiniteScroll
@@ -133,50 +109,46 @@ const AllRoles = () => {
                         next={requestForData}
                         hasMore={data ? !data.last : true}
                         loader={<div className="border-0 loading">Loading...</div>}
-                        endMessage={<div className="my-3 text-center text-muted">No more roles to load.</div>}
+                        endMessage={<div className="my-3 text-center text-muted">No more users to load.</div>}
                     >
                         <table className="table table-bordered">
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    {/* <th scope="col">ID</th> */}
-                                    <th scope="col">Role</th>
-                                    <th scope="col">Title</th>
-                                    <th scope="col">Category</th>
+                                    <th scope="col">Image</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Phone</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Address</th>
+                                    <th scope="col">Designation</th>
                                     <th scope="col">Status</th>
-                                    {userHasRole("ROLE_ROLE_UPDATE") && <th scope="col">Actions</th>}
+                                    {(hasUpdatePermission || hasAssignRolePermission) && (
+                                        <th scope="col">Action</th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
                                 {content.length > 0 && (
-                                    content.map((role) => (
-                                        <tr key={role.id}>
-                                            <td>R{role.id}</td>
-                                            <td>{role.role}</td>
-                                            <td>{role.title}</td>
-                                            <td>{role.category}</td>
-                                            <td>{role.isActive ? 'Active' : 'Inactive'}</td>
-                                            {userHasRole("ROLE_ROLE_UPDATE") &&
+                                    content.map((user, index) => (
+                                        <tr key={user.id}>
+                                            <td>{user.id}</td>
+                                            <td><img src={BASE_URL + user.image} alt="Image" style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%" }} /></td>
+                                            <td>{user.name}</td>
+                                            <td>{user.phone}</td>
+                                            <td>{user.email}</td>
+                                            <td>{user.address}</td>
+                                            <td>{user.designation}</td>
+                                            <td>{user.isLocked ? 'Locked' : 'Active'}</td>
+                                            {(hasUpdatePermission || hasAssignRolePermission) && (
                                                 <td>
-                                                    <button className="btn btn-primary btn-sm">Edit</button>
-                                                    {
-                                                        role.isActive ?
-                                                            <button
-                                                                className="btn btn-danger btn-sm ms-2"
-                                                                onClick={() => handleStatusUpdate(role.id)}
-                                                            >
-                                                                Deactivate
-                                                            </button>
-                                                            :
-                                                            <button
-                                                                className="btn btn-success btn-sm ms-2"
-                                                                onClick={() => handleStatusUpdate(role.id)}
-                                                            >
-                                                                Activate
-                                                            </button>
-                                                    }
+                                                    {hasUpdatePermission && (
+                                                        <button className="btn btn-primary btn-sm ms-2">Edit</button>
+                                                    )}
+                                                    {hasAssignRolePermission && (
+                                                        <button className="btn btn-secondary btn-sm ms-2" onClick={() => onAssignRoleClick(user)}>Assign Role</button>
+                                                    )}
                                                 </td>
-                                            }
+                                            )}
                                         </tr>
                                     ))
                                 )}
@@ -185,8 +157,8 @@ const AllRoles = () => {
                     </InfiniteScroll>
                 </CCardBody>
             </CCard>
-        </div>
+        </>
     )
 }
 
-export default AllRoles;
+export default FindUserComponent

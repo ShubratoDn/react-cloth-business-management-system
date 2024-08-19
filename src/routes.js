@@ -4,6 +4,8 @@ import AddUser from './views/userManagement/AddUser'
 import AddUserRole from 'views/userRole/AddUserRole'
 import AllRoles from 'views/userRole/AllRoles'
 import { exact } from 'prop-types'
+import FindUser from 'views/userManagement/FindUser'
+import AssignRole from 'views/userRole/AssignRole'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
@@ -58,16 +60,18 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
 const routes = [
     // USER MANAGEMENT JSON
-    // { path: '/user', exact: true, name: 'Find Elements', element: },
+    { path: '/user', exact: true, name: 'Users', element: FindUser, roleRequired: "ROLE_USER_GET"  },
     { path: '/user/add', name: 'Add User', element: AddUser, roleRequired: "ROLE_USER_CREATE" },
+    { path: '/user/all', name: 'Find Users', element: FindUser, roleRequired: "ROLE_USER_GET" },
     // USER MANAGEMENT JSON ENDS
 
 
 
     //USER ROLE
-    { path: '/role', exact:true, element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
+    { path: '/role', exact:true, name:"Roles", element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
     { path: '/role/all', name: 'All Roles', element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
     { path: '/role/add', name: 'Add Role', element: AddUserRole, roleRequired: "ROLE_ROLE_CREATE" },
+    { path: '/role/assign', name: 'Assign Role', element: AssignRole, roleRequired: "ROLE_ROLE_ASSIGN" },
 
     //USER ROLE ENDS
 
