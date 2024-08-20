@@ -26,3 +26,11 @@ export const getUserById = async (id)=>{
     return await axiosRequest.get(`/users/${id}`)
     .then((response) => response.data)
 }
+
+
+export const updateUserRoles = async (id, roles ) => {
+    const data = {"roles": roles}
+
+    return await axiosRequest.put(`/users/${id}/roles`, data)
+    .then((response) => response.data);
+};

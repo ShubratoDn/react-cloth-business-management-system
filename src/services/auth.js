@@ -68,8 +68,8 @@ export const userHasRole = (roleString)=>{
     if (rolesArray.some(role => role.role === "ROLE_ADMIN")){
         return true;
     }
-    // return rolesArray.some(role => role.role === roleString);
-    return true;
+    return rolesArray.some(role => role.role === roleString);
+    // return true;
 }
 
 

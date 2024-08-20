@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 
 function Logout() {
     useEffect(()=>{
+        console.log("Logout processing")
         doLogout();
     },[])
 

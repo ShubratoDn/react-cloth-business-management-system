@@ -1,5 +1,5 @@
 import React from 'react'
-import Logout from './views/auth/Logout'
+
 import AddUser from './views/userManagement/AddUser'
 import AddUserRole from 'views/userRole/AddUserRole'
 import AllRoles from 'views/userRole/AllRoles'
@@ -7,6 +7,8 @@ import { exact } from 'prop-types'
 import FindUser from 'views/userManagement/FindUser'
 import AssignRole from 'views/userRole/AssignRole'
 
+
+const Logout = React.lazy(() => import('./views/auth/Logout'))
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
