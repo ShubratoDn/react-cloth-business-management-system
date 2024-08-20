@@ -77,7 +77,7 @@ const AddUserRole = () => {
                     //     return `${value}`;
                     // }).join(", ");
 
-                    const errMessages = err.response.data.error;
+                    const errMessages = err.response.data.message;
 
                     setMessage({ error: errMessages });
                         toast.error(`${errMessages}`, {
