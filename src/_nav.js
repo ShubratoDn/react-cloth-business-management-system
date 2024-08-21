@@ -2,6 +2,7 @@ import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
     cilBell,
+    cilBuilding,
     cilCalculator,
     cilChartPie,
     cilCursor,
@@ -28,6 +29,9 @@ const _nav = [
             text: 'NEW',
         },
     },
+
+
+
     // USER MANAGEMENT CODES STARTS
     {
         component: CNavTitle,
@@ -83,6 +87,50 @@ const _nav = [
     },
     // USER MANAGEMENT JSON ENDS
     
+
+
+
+
+    //STORE MANAGEMENT
+    {
+        component: CNavTitle,
+        isTitle: true,
+        name: 'Store Management',        
+        roleRequired: ["ROLE_STORE_CREATE", "ROLE_STORE_GET", "ROLE_STORE_UPDATE",'ROLE_STORE_ASSIGN'],
+    },
+    {
+        component: CNavGroup,
+        name: 'Manage Store',
+        to: '/user',
+        icon: <CIcon icon={cilBuilding} customClassName="nav-icon" />,
+        roleRequired: ["ROLE_STORE_CREATE", "ROLE_STORE_GET", "ROLE_STORE_UPDATE",'ROLE_STORE_ASSIGN'],
+        items: [
+            {
+                component: CNavItem,
+                name: 'Add Store',
+                to: '/store/add',
+                roleRequired: "ROLE_STORE_CREATE"
+            },
+            {
+                component: CNavItem,
+                name: 'Find Stores',
+                to: '/store/all',
+                roleRequired: "ROLE_STORE_GET"
+            },
+            {
+                component: CNavItem,
+                name: 'Assign Store',
+                to: '/store/assign',
+                roleRequired: "ROLE_STORE_ASSIGN"
+            },
+        ]
+    },
+    //STORE MANAGEMENT
+
+
+
+
+
 
     {
         component: CNavTitle,

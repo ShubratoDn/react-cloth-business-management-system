@@ -33,8 +33,15 @@ export const AppSidebarNav = ({ items }) => {
         const { component, name, badge, icon, roleRequired, ...rest } = item
         const Component = component
 
+
+        if (item.isTitle) {
+            // Check if the user has the required role for the group
+            if (roleRequired && !roleRequired.some(role => userHasRole(role))) {
+                return null
+            }
+        }
         // Check if the user has the required role
-        if (roleRequired && !userHasRole(roleRequired)) {   
+        else if (roleRequired && !userHasRole(roleRequired)) {
             return null
         }
 

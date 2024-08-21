@@ -6,6 +6,9 @@ import AllRoles from 'views/userRole/AllRoles'
 import { exact } from 'prop-types'
 import FindUser from 'views/userManagement/FindUser'
 import AssignRole from 'views/userRole/AssignRole'
+import AddStore from 'views/storeManagement/AddStore'
+import FindStore from 'views/storeManagement/FindStore'
+import AssignStore from 'views/storeManagement/AssignStore'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -62,7 +65,7 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
 const routes = [
     // USER MANAGEMENT JSON
-    { path: '/user', exact: true, name: 'Users', element: FindUser, roleRequired: "ROLE_USER_GET"  },
+    { path: '/user', exact: true, name: 'Users', element: FindUser, roleRequired: "ROLE_USER_GET" },
     { path: '/user/add', name: 'Add User', element: AddUser, roleRequired: "ROLE_USER_CREATE" },
     { path: '/user/all', name: 'Find Users', element: FindUser, roleRequired: "ROLE_USER_GET" },
     // USER MANAGEMENT JSON ENDS
@@ -70,12 +73,22 @@ const routes = [
 
 
     //USER ROLE
-    { path: '/role', exact:true, name:"Roles", element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
+    { path: '/role', exact: true, name: "Roles", element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
     { path: '/role/all', name: 'All Roles', element: AllRoles, roleRequired: "ROLE_ROLE_GET" },
     { path: '/role/add', name: 'Add Role', element: AddUserRole, roleRequired: "ROLE_ROLE_CREATE" },
     { path: '/role/assign', name: 'Assign Role', element: AssignRole, roleRequired: "ROLE_ROLE_ASSIGN" },
-
     //USER ROLE ENDS
+
+
+
+
+    //STORE MANAGEMENT
+    { path: '/store', exact: true, name: "Stores", element: AllRoles, roleRequired: "ROLE_STORE_GET" },
+    { path: '/store/all', name: 'All Stores', element: FindStore, roleRequired: "ROLE_STORE_GET" },
+    { path: '/store/add', name: 'Add Store', element: AddStore, roleRequired: "ROLE_STORE_CREATE" },
+    { path: '/store/assign', name: 'Assign Store', element: AssignStore, roleRequired: "ROLE_STORE_ASSIGN" },
+    //STORE MANAGEMENT
+
 
 
     { path: '/', exact: true, name: 'Home' },

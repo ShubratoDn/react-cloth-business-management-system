@@ -3,10 +3,9 @@ import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { toast } from 'react-toastify';
-import { searchRoles } from 'services/userRoleService';
 import { searchUsers } from 'services/userServices';
 
-const FindUserComponent = ({ hasUpdatePermission, hasAssignRolePermission, title, onAssignRoleClick }) => {
+const FindUserComponent = ({ hasUpdatePermission, hasAssignRolePermission, title, onAssignRoleClick, hasAssignStorePermission }) => {
 
 
 
@@ -122,7 +121,7 @@ const FindUserComponent = ({ hasUpdatePermission, hasAssignRolePermission, title
                                     <th scope="col">Address</th>
                                     <th scope="col">Designation</th>
                                     <th scope="col">Status</th>
-                                    {(hasUpdatePermission || hasAssignRolePermission) && (
+                                    {(hasUpdatePermission || hasAssignRolePermission || hasAssignStorePermission) && (
                                         <th scope="col">Action</th>
                                     )}
                                 </tr>
@@ -139,13 +138,16 @@ const FindUserComponent = ({ hasUpdatePermission, hasAssignRolePermission, title
                                             <td>{user.address}</td>
                                             <td>{user.designation}</td>
                                             <td>{user.isLocked ? 'Locked' : 'Active'}</td>
-                                            {(hasUpdatePermission || hasAssignRolePermission) && (
+                                            {(hasUpdatePermission || hasAssignRolePermission || hasAssignStorePermission) && (
                                                 <td>
                                                     {hasUpdatePermission && (
                                                         <button className="btn btn-primary btn-sm ms-2">Edit</button>
                                                     )}
                                                     {hasAssignRolePermission && (
                                                         <button className="btn btn-secondary btn-sm ms-2" onClick={() => onAssignRoleClick(user)}>Assign Role</button>
+                                                    )}
+                                                    {hasAssignStorePermission && (
+                                                        <button className="btn btn-secondary btn-sm ms-2" onClick={() => onAssignRoleClick(user)}>Assign Store</button>
                                                     )}
                                                 </td>
                                             )}
