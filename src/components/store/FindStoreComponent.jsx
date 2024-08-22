@@ -3,9 +3,9 @@ import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { toast } from 'react-toastify';
-import { searchStores } from 'services/storeServices';
+import { searchStores, updateUserAssignedStore } from 'services/storeServices';
 
-const FindStoreComponent = ({ hasUpdatePermission, hasAssignRolePermission, title, onAssignRoleClick }) => {
+const FindStoreComponent = ({ hasUpdatePermission, hasAssignRolePermission, title, onAssignRoleClick, userAssignedStores, setUserAssignedStores, isAssigningStore, user }) => {
 
     const [query, setQuery] = useState('');
     const [isLoading, setLoading] = useState(false);
@@ -63,6 +63,55 @@ const FindStoreComponent = ({ hasUpdatePermission, hasAssignRolePermission, titl
         setPage((prevPage) => prevPage + 1);
     };
 
+    const isStoreAssignedToUser = (store) => {
+        return userAssignedStores.some(assignedStore => assignedStore.id === store.id);
+    };
+
+    const handleAssignOrRemove = (store) => {
+        setLoading(true);
+        setMessage({});
+
+        updateUserAssignedStore(user, store)
+            .then((response) => {
+                // Toggle the assignment status
+                if (isStoreAssignedToUser(store)) {
+                    setUserAssignedStores((prevStores) =>
+                        prevStores.filter((assignedStore) => assignedStore.id !== store.id)
+                    );
+                    toast.success('Store removed successfully!', {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                } else {
+                    setUserAssignedStores((prevStores) => [...prevStores, store]);
+                    toast.success('Store assigned successfully!', {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                }
+            })
+            .catch((err) => {
+                if (err.code === 'ERR_NETWORK') {
+                    toast.error('Network error!! Failed to connect with server.', {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                    return;
+                }
+
+                const errMessages = err.response.data.message || "An error occurred";
+                setMessage({ error: errMessages });
+
+                toast.error(errMessages, {
+                    position: "bottom-center",
+                    theme: "dark",
+                });
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
     return (
         <>
             <form>
@@ -93,7 +142,6 @@ const FindStoreComponent = ({ hasUpdatePermission, hasAssignRolePermission, titl
                 </div>
             }
 
-
             <CCard>
                 <CCardHeader>
                     <h4>{title ? title : "Search Results"}</h4>
@@ -119,11 +167,14 @@ const FindStoreComponent = ({ hasUpdatePermission, hasAssignRolePermission, titl
                                     {(hasUpdatePermission || hasAssignRolePermission) && (
                                         <th scope="col">Action</th>
                                     )}
+                                    {isAssigningStore && (
+                                        <th scope="col">Is Assigned</th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
                                 {content.length > 0 && (
-                                    content.map((store, index) => (
+                                    content.map((store) => (
                                         <tr key={store.id}>
                                             <td>{store.id}</td>
                                             <td><img src={BASE_URL + store.image} alt="Image" style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%" }} /></td>
@@ -140,6 +191,17 @@ const FindStoreComponent = ({ hasUpdatePermission, hasAssignRolePermission, titl
                                                     {hasAssignRolePermission && (
                                                         <button className="btn btn-secondary btn-sm ms-2" onClick={() => onAssignRoleClick(store)}>Assign Role</button>
                                                     )}
+                                                </td>
+                                            )}
+
+                                            {isAssigningStore && (
+                                                <td>
+                                                    <button
+                                                        className={`btn ${isStoreAssignedToUser(store) ? 'btn-danger' : 'btn-success'}`}
+                                                        onClick={() => handleAssignOrRemove(store)}
+                                                    >
+                                                        {isStoreAssignedToUser(store) ? 'Remove User' : 'Select User'}
+                                                    </button>
                                                 </td>
                                             )}
                                         </tr>

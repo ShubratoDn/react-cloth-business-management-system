@@ -51,7 +51,7 @@ const AddStore = () => {
                         theme: "dark",
                     })
 
-                    // resetForm({ values: "" })
+                    resetForm({ values: "" })
                     setMessage({ success: "Store added successfully." })
                 })
                 .catch((err) => {

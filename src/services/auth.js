@@ -63,6 +63,16 @@ export const getLoggedInUsersRole = ()=>{
 }
 
 
+export const getLoggedInUsersAssignedStore = ()=>{
+    if (getCurrentUserInfo()){
+        return getCurrentUserInfo().assignedStore;
+    }else{
+        return null;
+    }
+}
+
+
+
 export const userHasRole = (roleString)=>{
     let rolesArray = getLoggedInUsersRole();
     if (rolesArray.some(role => role.role === "ROLE_ADMIN")){
