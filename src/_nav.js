@@ -1,6 +1,7 @@
 import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
+    cilBasket,
     cilBell,
     cilBuilding,
     cilCalculator,
@@ -101,7 +102,7 @@ const _nav = [
     {
         component: CNavGroup,
         name: 'Manage Store',
-        to: '/user',
+        to: '/store',
         icon: <CIcon icon={cilBuilding} customClassName="nav-icon" />,
         roleRequired: ["ROLE_STORE_CREATE", "ROLE_STORE_GET", "ROLE_STORE_UPDATE",'ROLE_STORE_ASSIGN'],
         items: [
@@ -126,6 +127,40 @@ const _nav = [
         ]
     },
     //STORE MANAGEMENT
+
+
+
+
+
+    //PRODUCT MANAGEMENT
+    {
+        component: CNavTitle,
+        isTitle: true,
+        name: 'Product Management',
+        roleRequired: ["ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_GET", "ROLE_PRODUCT_UPDATE", ],
+    },
+    {
+        component: CNavGroup,
+        name: 'Products',
+        to: '/products',
+        icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
+        roleRequired: ["ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_GET", "ROLE_PRODUCT_UPDATE", ],
+        items: [
+            {
+                component: CNavItem,
+                name: 'Add Product',
+                to: '/product/add',
+                roleRequired: "ROLE_PRODUCT_CREATE"
+            },
+            {
+                component: CNavItem,
+                name: 'Find Products',
+                to: '/product/all',
+                roleRequired: "ROLE_PRODUCT_GET"
+            },            
+        ]
+    },
+    //PRODUCT MANAGEMENT
 
 
 

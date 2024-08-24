@@ -9,6 +9,7 @@ import AssignRole from 'views/userRole/AssignRole'
 import AddStore from 'views/storeManagement/AddStore'
 import FindStore from 'views/storeManagement/FindStore'
 import AssignStore from 'views/storeManagement/AssignStore'
+import CreateProduct from 'views/productManagement/CreateProduct'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -88,6 +89,14 @@ const routes = [
     { path: '/store/add', name: 'Add Store', element: AddStore, roleRequired: "ROLE_STORE_CREATE" },
     { path: '/store/assign', name: 'Assign Store', element: AssignStore, roleRequired: "ROLE_STORE_ASSIGN" },
     //STORE MANAGEMENT
+
+
+
+    //product Management
+    { path: '/product', exact: true, name: "Products", element: AllRoles, roleRequired: "ROLE_PRODUCT_GET" },
+    { path: '/product/all', name: 'All Products', element: FindStore, roleRequired: "ROLE_PRODUCT_GET" },
+    { path: '/product/add', name: 'Add Product', element: CreateProduct, roleRequired: "ROLE_PRODUCT_CREATE" },
+    //product management ends
 
 
 
