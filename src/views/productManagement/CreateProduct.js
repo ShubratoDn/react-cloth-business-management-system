@@ -2,26 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CCard, CCardBody, CCardHeader } from '@coreui/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import {createProduct, getAllProductCategories } from '../../services/productServices';
+import { createProduct, getAllProductCategories } from '../../services/productServices';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
-
-const CustomOption = (props) => (
-  <div {...props.innerProps} style={{ padding: '10px', backgroundColor: '#f5f5f5' }}>
-    {props.data.label}
-  </div>
-);
 
 const CreateProduct = () => {
-    const [options, setOptions] = React.useState([
-        { value: 'chocolate', label: 'Chocolate' },
-        { value: 'strawberry', label: 'Strawberry' },
-    ]);
-
-
-    const [categories, setCategories] = useState([]);
+    const [categorySuggestions, setCategorySuggestions] = useState([]); // State for categorySuggestions
     const [isLoading, setLoading] = useState(false);
     const [message, setMessage] = useState({});
     const [imagePreview, setImagePreview] = useState(null); // State for image preview
@@ -62,34 +48,20 @@ const CreateProduct = () => {
         setIsCameraOpen(false);
     };
 
-    useEffect(() => {
-        getAllProductCategories()
-            .then(response => {
-                setCategories(response);
-            })
-            .catch(err => {
-                console.error(err);
-                toast.error('Failed to load categories.', { theme: "dark" });
-            });
-    }, []);
 
     const formik = useFormik({
         initialValues: {
-            category: '',
+            productCategory: '',
             name: '',
-            price: '',
             size: '',
             productImage: null,
             remark: '',
         },
         validationSchema: Yup.object({
-            // category: Yup.string().required('Category is required'),
+            productCategory: Yup.string().required('Category is required'),
             name: Yup.string()
                 .required('Product name is required')
                 .min(3, 'Product name should be at least 3 characters'),
-            price: Yup.number()
-                .required('Price is required')
-                .min(0.1, 'Price must be greater than zero'),
             size: Yup.string().required('Size is required'),
             productImage: Yup.mixed()
                 .required('Product image is required')
@@ -126,6 +98,15 @@ const CreateProduct = () => {
                         return;
                     }
 
+                    if(err.response.data.message){
+                        toast.error(`${err.response.data.message}`, {
+                            position: "bottom-center",
+                            theme: "dark",
+                        })
+                        setMessage({ error: err.response.data.message })
+                        return;
+                    }
+
                     const errMessages = Object.entries(err.response.data).map(([key, value]) => {
                         toast.error(`${value}`, {
                             position: "bottom-center",
@@ -146,8 +127,28 @@ const CreateProduct = () => {
             formik.setFieldValue('productImage', file);
             setImagePreview(URL.createObjectURL(file)); // Set image preview
         } else {
+            const { name, value } = event.target;
             formik.handleChange(event);
+
+            if (name === 'productCategory' && value.length >= 1) { // Fetch categorySuggestions if 2 or more characters
+                getAllProductCategories(value)
+                    .then(response => {
+                        setCategorySuggestions(response);
+                    })
+                    .catch(err => {
+                        console.error('Failed to fetch categorySuggestions:', err);
+
+                        toast.error('Failed to load categories.', { theme: "dark" });
+                    });
+            } else {
+                setCategorySuggestions([]); // Clear categorySuggestions if less than 2 characters
+            }
         }
+    };
+
+    const handleSuggestionClick = (suggestion) => {
+        formik.setFieldValue('productCategory', suggestion.name);
+        setCategorySuggestions([]); // Clear categorySuggestions after selection
     };
 
     return (
@@ -169,42 +170,33 @@ const CreateProduct = () => {
 
 
                     {/* IMAGE PREVIEW */}
-                    {imagePreview && (
+                    {/* {imagePreview && (
                         <div className="image-preview mb-3">
                             <img src={imagePreview} alt="Image preview" className="img-fluid" />
                         </div>
-                    )}
+                    )} */}
 
-                    <div className="form-group col-md-6 mb-3">
-                        <label htmlFor="category" className="mb-2 text-muted">Category</label>
-                        {/* <Select options={options} /> */}
-                        <CreatableSelect
-                            isClearable
-                            onChange={(newValue) => console.log(newValue)}
-                            options={options}
-                            onCreateOption={(inputValue) => {
-                                const newOption = { value: inputValue, label: inputValue };
-                                setOptions((prevOptions) => [...prevOptions, newOption]);
-                            }}
-                            components={{ Option: CustomOption }}
-                        />
-                        <select
-                            className={`form-control ${formik.touched.category && formik.errors.category ? 'is-invalid' : ''}`}
-                            id="category"
-                            name="category"
-                            value={formik.values.category}
+                    <div className="form-group col-md-6 mb-3 position-relative">
+                        <label htmlFor="productCategory" className="mb-2 text-muted">Category</label>
+                        <input type='text'
+                            className={`form-control ${formik.touched.productCategory && formik.errors.productCategory ? 'is-invalid' : ''}`}
+                            id="productCategory"
+                            name="productCategory"
+                            value={formik.values.productCategory}
                             onChange={handleChange}
-                            onBlur={formik.handleBlur}
-                        >
-                            <option value="">Select a category</option>
-                            {categories && categories.map(category => (
-                                <option key={category.id} value={category.id}>{category.name}</option>
-                            ))}
-                        </select>
-                        {formik.touched.category && formik.errors.category ? (
-                            <small className="form-text text-danger">{formik.errors.category}</small>
-                        ) : (
-                            <small className="form-text text-muted"></small>
+                            placeholder='Product category here'
+                        />
+                        {categorySuggestions.length > 0 && (
+                            <ul className="list-group position-absolute" style={{width:"94.5%"}}>
+                                {categorySuggestions.map((suggestion) => (
+                                    <li key={suggestion.id} className="list-group-item list-group-item-action" onClick={() => handleSuggestionClick(suggestion)}>
+                                        {suggestion.name}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        {formik.touched.productCategory && formik.errors.productCategory && (
+                            <small className="form-text text-danger">{formik.errors.productCategory}</small>
                         )}
                     </div>
 
@@ -220,14 +212,12 @@ const CreateProduct = () => {
                             onChange={handleChange}
                             onBlur={formik.handleBlur}
                         />
-                        {formik.touched.name && formik.errors.name ? (
+                        {formik.touched.name && formik.errors.name && (
                             <small className="form-text text-danger">{formik.errors.name}</small>
-                        ) : (
-                            <small className="form-text text-muted"></small>
                         )}
                     </div>
 
-                    <div className="form-group col-md-6 mb-3">
+                    {/* <div className="form-group col-md-6 mb-3">
                         <label htmlFor="productImage" className="mb-2 text-muted">Product Image</label>
                         <input
                             type="file"
@@ -267,26 +257,9 @@ const CreateProduct = () => {
                                 </button>
                             </div>
                         )}
-                    </div>
+                    </div> */}
 
-                    <div className="form-group col-md-6 mb-3">
-                        <label htmlFor="price" className="mb-2 text-muted">Price</label>
-                        <input
-                            type="number"
-                            className={`form-control ${formik.touched.price && formik.errors.price ? 'is-invalid' : ''}`}
-                            id="price"
-                            name="price"
-                            placeholder="Product price"
-                            value={formik.values.price}
-                            onChange={handleChange}
-                            onBlur={formik.handleBlur}
-                        />
-                        {formik.touched.price && formik.errors.price ? (
-                            <small className="form-text text-danger">{formik.errors.price}</small>
-                        ) : (
-                            <small className="form-text text-muted"></small>
-                        )}
-                    </div>
+                    
 
                     <div className="form-group col-md-6 mb-3">
                         <label htmlFor="size" className="mb-2 text-muted">Size</label>
