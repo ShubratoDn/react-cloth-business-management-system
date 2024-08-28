@@ -137,14 +137,14 @@ const _nav = [
         component: CNavTitle,
         isTitle: true,
         name: 'Product Management',
-        roleRequired: ["ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_GET", "ROLE_PRODUCT_UPDATE", ],
+        // roleRequired: ["ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_GET", "ROLE_PRODUCT_UPDATE", ],
     },
     {
         component: CNavGroup,
         name: 'Products',
         to: '/products',
         icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
-        roleRequired: ["ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_GET", "ROLE_PRODUCT_UPDATE", ],
+        // roleRequired: ["ROLE_PRODUCT_CREATE", "ROLE_PRODUCT_GET", "ROLE_PRODUCT_UPDATE", ],
         items: [
             {
                 component: CNavItem,
@@ -156,7 +156,7 @@ const _nav = [
                 component: CNavItem,
                 name: 'Find Products',
                 to: '/product/all',
-                roleRequired: "ROLE_PRODUCT_GET"
+                // roleRequired: "ROLE_PRODUCT_GET"
             },            
         ]
     },

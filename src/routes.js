@@ -10,6 +10,7 @@ import AddStore from 'views/storeManagement/AddStore'
 import FindStore from 'views/storeManagement/FindStore'
 import AssignStore from 'views/storeManagement/AssignStore'
 import CreateProduct from 'views/productManagement/CreateProduct'
+import FindProduct from 'views/productManagement/FindProduct'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -84,7 +85,7 @@ const routes = [
 
 
     //STORE MANAGEMENT
-    { path: '/store', exact: true, name: "Stores", element: AllRoles, roleRequired: "ROLE_STORE_GET" },
+    { path: '/store', exact: true, name: "Stores", element: FindStore, roleRequired: "ROLE_STORE_GET" },
     { path: '/store/all', name: 'All Stores', element: FindStore, roleRequired: "ROLE_STORE_GET" },
     { path: '/store/add', name: 'Add Store', element: AddStore, roleRequired: "ROLE_STORE_CREATE" },
     { path: '/store/assign', name: 'Assign Store', element: AssignStore, roleRequired: "ROLE_STORE_ASSIGN" },
@@ -93,8 +94,8 @@ const routes = [
 
 
     //product Management
-    { path: '/product', exact: true, name: "Products", element: AllRoles, roleRequired: "ROLE_PRODUCT_GET" },
-    { path: '/product/all', name: 'All Products', element: FindStore, roleRequired: "ROLE_PRODUCT_GET" },
+    { path: '/product', exact: true, name: "Products", element: FindProduct},
+    { path: '/product/all', name: 'All Products', element: FindProduct},
     { path: '/product/add', name: 'Add Product', element: CreateProduct, roleRequired: "ROLE_PRODUCT_CREATE" },
     //product management ends
 
