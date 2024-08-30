@@ -11,6 +11,7 @@ import FindStore from 'views/storeManagement/FindStore'
 import AssignStore from 'views/storeManagement/AssignStore'
 import CreateProduct from 'views/productManagement/CreateProduct'
 import FindProduct from 'views/productManagement/FindProduct'
+import CreateStakeholder from 'views/stakeholderManagement/CreateStakeholder'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -98,6 +99,17 @@ const routes = [
     { path: '/product/all', name: 'All Products', element: FindProduct},
     { path: '/product/add', name: 'Add Product', element: CreateProduct, roleRequired: "ROLE_PRODUCT_CREATE" },
     //product management ends
+
+
+
+
+
+      //STAKEHOLDER Management
+      { path: '/stakeholder', exact: true, name: "Stakeholders", element: FindProduct},
+      { path: '/stakeholder/find', name: 'Find Stakeholders', element: FindProduct},
+      { path: '/stakeholder/add', name: 'Add Stakeholders', element: CreateStakeholder, roleRequired: "ROLE_STAKEHOLDER_CREATE" },
+      //STAKEHOLDER management ends
+  
 
 
 

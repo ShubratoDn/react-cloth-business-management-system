@@ -9,6 +9,7 @@ import {
     cilCursor,
     cilDescription,
     cilDrop,
+    cilLan,
     cilLockLocked,
     cilNotes,
     cilPencil,
@@ -16,6 +17,7 @@ import {
     cilSpeedometer,
     cilStar,
     cilUser,
+    cilUserPlus,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
@@ -164,9 +166,39 @@ const _nav = [
 
 
 
+    //stakeholder management
+    {
+        component: CNavTitle,
+        isTitle: true,
+        name: 'Stakeholder',
+        roleRequired: ["ROLE_STAKEHOLDER_CREATE", "ROLE_STAKEHOLDER_GET", "ROLE_STAKEHOLDER_UPDATE", ],
+    },
+    {
+        component: CNavGroup,
+        name: 'Stakeholders',
+        to: '/products',
+        icon: <CIcon icon={cilLan} customClassName="nav-icon" />,
+        roleRequired: ["ROLE_STAKEHOLDER_CREATE", "ROLE_STAKEHOLDER_GET", "ROLE_STAKEHOLDER_UPDATE", ],
+        items: [
+            {
+                component: CNavItem,
+                name: 'Add Stakeholder',
+                to: '/stakeholder/add',
+                roleRequired: "ROLE_STAKEHOLDER_CREATE"
+            },
+            {
+                component: CNavItem,
+                name: 'Find Stakeholders',
+                to: '/stakeholder/find',
+                roleRequired: "ROLE_STAKEHOLDER_GET"
+            },            
+        ]
+    },
+    //STAKEHOLDER MANAGEMENT ENDS
 
 
 
+    	
     {
         component: CNavTitle,
         name: 'Theme',

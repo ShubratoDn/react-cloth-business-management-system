@@ -1,4 +1,13 @@
-/* HTML: <div class="loader"></div> */
+.image-preview{
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    margin: 0 10px;
+}
+
+.image-preview img{
+    border-radius: 2px;
+}
 
 .loaderContainer{
     background-color: rgba(255, 255, 255, 0.174);

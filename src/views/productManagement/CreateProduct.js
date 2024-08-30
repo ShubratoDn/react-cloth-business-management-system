@@ -64,7 +64,7 @@ const CreateProduct = () => {
                 .min(3, 'Product name should be at least 3 characters'),
             size: Yup.string().required('Size is required'),
             productImage: Yup.mixed()
-                .required('Product image is required')
+                .notRequired()
                 .test('fileSize', 'File size is too large. Maximum size is 5MB', value => {
                     return value ? value.size <= 5000000 : true;
                 })
