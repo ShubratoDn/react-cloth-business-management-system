@@ -19,3 +19,7 @@ export const updateUserAssignedStore = async (user, store )=>{
     return await axiosRequest.put( `/users/${user.id}/stores/${store.id}/assign`)
 }
 
+export const getAllStores = async ()=>{
+    return await axiosRequest.get(`/stores`)
+    .then((response) => response.data)
+}

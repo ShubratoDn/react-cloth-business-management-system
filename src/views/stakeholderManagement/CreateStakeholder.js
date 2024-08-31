@@ -1,15 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { CCard, CCardBody, CCardHeader } from '@coreui/react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { addStakeholder } from 'services/stakeholderServices';
+import { getAllStores } from 'services/storeServices';
+import Select from 'react-select';
+import store from 'store';
 
 const CreateStakeholder = () => {
   const [isLoading, setLoading] = useState(false)
   const [message, setMessage] = useState({})
   const [imagePreview, setImagePreview] = useState(null);
+
+
+  const [storeOptions, setStoreOptions] = useState([]);
+
+  useEffect(() => {
+    getAllStores().then((response) => {
+      const options = response.map(store => ({
+        value: store.id,
+        label: store.storeName ? `${store.storeName} (${store.storeCode})` : store.storeCode,
+      }));
+      setStoreOptions(options);
+    }).catch(err => {
+      console.log(err)
+      toast.error('Failed to fetch stores info', {
+        position: "bottom-center",
+        theme: "dark",
+      });
+    });
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -20,6 +42,7 @@ const CreateStakeholder = () => {
       email: '',
       stakeHolderImage: null,
       isActive: true,
+      store: null,  // New store field
     },
     validationSchema: Yup.object({
       stakeHolderType: Yup.string().required('Stakeholder type is required'),
@@ -28,7 +51,8 @@ const CreateStakeholder = () => {
         .max(100, 'Name cannot be longer than 100 characters'),
       phone: Yup.string()
         .required('Phone is required')
-        .max(15, 'Phone cannot be longer than 15 characters'),
+        .max(15, 'Phone cannot be longer than 15 characters')
+        .min(11, 'Phone cannot be less than 11 characters'),
       address: Yup.string()
         .required('Address is required')
         .max(255, 'Address cannot be longer than 255 characters'),
@@ -42,6 +66,7 @@ const CreateStakeholder = () => {
           return value ? ['image/jpeg', 'image/png', 'image/gif'].includes(value.type) : true;
         }),
       isActive: Yup.boolean(),
+      store: Yup.object().nullable().required('Store is required'),  // Validation for store
     }),
     onSubmit: (values, { resetForm }) => {
       console.log(values)
@@ -112,7 +137,7 @@ const CreateStakeholder = () => {
   return (
     <CCard>
       <CCardHeader>
-        <h4>Create Stakeholder</h4>
+        <h4>Add Stakeholder</h4>
       </CCardHeader>
       <CCardBody>
         <form onSubmit={formik.handleSubmit} className="row">
@@ -132,6 +157,22 @@ const CreateStakeholder = () => {
             </select>
             {formik.touched.stakeHolderType && formik.errors.stakeHolderType && (
               <small className="form-text text-danger">{formik.errors.stakeHolderType}</small>
+            )}
+          </div>
+
+          <div className="form-group col-md-6 mb-3">
+            <label htmlFor="store" className="mb-2 text-muted">Store</label>
+            <Select
+              id="store"
+              name="store"
+              options={storeOptions}
+              value={formik.values.store}
+              onChange={value => formik.setFieldValue('store', value)}
+              onBlur={formik.handleBlur}
+              className={`form-control p-0 ${formik.touched.store && formik.errors.store ? 'is-invalid' : ''}`}
+            />
+            {formik.touched.store && formik.errors.store && (
+              <small className="form-text text-danger">{formik.errors.store}</small>
             )}
           </div>
 
