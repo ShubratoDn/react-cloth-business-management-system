@@ -5,6 +5,7 @@ import {
     cilBell,
     cilBuilding,
     cilCalculator,
+    cilCart,
     cilChartPie,
     cilCursor,
     cilDescription,
@@ -195,6 +196,52 @@ const _nav = [
         ]
     },
     //STAKEHOLDER MANAGEMENT ENDS
+
+
+
+
+
+    // PROCUREMENT AND SALES
+    {
+        component: CNavTitle,
+        isTitle: true,
+        name: 'procurement & sales',
+        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_STAKEHOLDER_GET", "ROLE_STAKEHOLDER_UPDATE", ],
+    },
+    {
+        component: CNavGroup,
+        name: 'Procurement & Sales',
+        to: '/products',
+        icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
+        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_STAKEHOLDER_GET", "ROLE_STAKEHOLDER_UPDATE", ],
+        items: [
+            {
+                component: CNavItem,
+                name: 'Purchase',
+                to: '/procurement/purchase',
+                roleRequired: "ROLE_PURCHASE_CREATE"
+            },
+            {
+                component: CNavItem,
+                name: 'Invoice List',
+                to: '/invoices',
+                roleRequired: "ROLE_STAKEHOLDER_GET"
+            },       
+            {
+                component: CNavItem,
+                name: 'Sell',
+                to: '/sales/sell',
+                roleRequired: "ROLE_STAKEHOLDER_GET"
+            }, 
+            {
+                component: CNavItem,
+                name: 'Voucher List',
+                to: '/vouchers',
+                roleRequired: "ROLE_STAKEHOLDER_GET"
+            },      
+        ]
+    },
+    // PROCUREMENT AND SALES ENDS
 
 
 
