@@ -2,7 +2,6 @@ import { axiosRequest } from "configs/axiosConfig";
 import { jsonToFormData } from "./utils";
 
 export const addStakeholder = async (details) => {
-
     let store = details.store;
     delete details.store;
 
@@ -18,4 +17,9 @@ export const addStakeholder = async (details) => {
 
     return await axiosRequest.post("/stakeholders", formData)
         .then((response) => response.data)
+}
+
+
+export const fetchSuppliersByStoreId = async (storeId) =>{
+    return await axiosRequest.get(`/stakeholders/type/supplier/store/${storeId}`).then((resp)=>resp.data)
 }

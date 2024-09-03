@@ -15,9 +15,11 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { addPurchase } from 'services/purchaseServices';
 import { getLoggedInUsersAssignedStore } from 'services/auth';
+import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
 
 const CreatePurchase = () => {
     const [isLoading, setLoading] = useState(false);
+    const [message, setMessage] = useState({});
     const [storeOptions, setStoreOptions] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
     const [userOptions, setUserOptions] = useState([]);
@@ -32,58 +34,9 @@ const CreatePurchase = () => {
                 : store.storeCode,
         }));
         setStoreOptions(options);
-
-        // // Fetch Suppliers
-        // getSuppliers()
-        //     .then((response) => {
-        //         const options = response.data.map((supplier) => ({
-        //             value: supplier.id,
-        //             label: supplier.name,
-        //         }));
-        //         setSupplierOptions(options);
-        //     })
-        //     .catch((err) => {
-        //         console.error(err);
-        //         toast.error('Failed to fetch suppliers.', {
-        //             position: 'bottom-center',
-        //             theme: 'dark',
-        //         });
-        //     });
-
-        // // Fetch Users
-        // getUsers()
-        //     .then((response) => {
-        //         const options = response.data.map((user) => ({
-        //             value: user.id,
-        //             label: user.username,
-        //         }));
-        //         setUserOptions(options);
-        //     })
-        //     .catch((err) => {
-        //         console.error(err);
-        //         toast.error('Failed to fetch users.', {
-        //             position: 'bottom-center',
-        //             theme: 'dark',
-        //         });
-        //     });
-
-        // // Fetch Products
-        // getProducts()
-        //     .then((response) => {
-        //         const options = response.data.map((product) => ({
-        //             value: product.id,
-        //             label: product.productName,
-        //         }));
-        //         setProductOptions(options);
-        //     })
-        //     .catch((err) => {
-        //         console.error(err);
-        //         toast.error('Failed to fetch products.', {
-        //             position: 'bottom-center',
-        //             theme: 'dark',
-        //         });
-        //     });
     }, []);
+
+
 
     const formik = useFormik({
         initialValues: {
@@ -142,6 +95,52 @@ const CreatePurchase = () => {
         formik.setFieldValue(name, value);
     };
 
+
+    const fetchSuppliers = (option) => {
+        fetchSuppliersByStoreId(option.value)
+            .then((data) => {
+
+                if (data && data.length < 1) {
+                    toast.error('No supplier found');
+                } else {
+                    const options = data.map((supplier) => ({
+                        value: supplier.id,
+                        label: supplier.name,
+                    }));
+                    setSupplierOptions(options);
+                }
+            })
+            .catch((err) => {
+                if (err.code === 'ERR_NETWORK') {
+                    toast.error('Network error! Failed to connect with server.', {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                    return;
+                }
+
+                if (err.response.data.message) {
+                    toast.error(`${err.response.data.message}`, {
+                        position: "bottom-center",
+                        theme: "dark",
+                    })
+                    setMessage({ error: err.response.data.message })
+                    return;
+                }
+
+                const errMessages = Object.entries(err.response.data).map(([key, value]) => {
+                    toast.error(`${value}`, {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                    return `${value}`;
+                }).join(", ");
+
+                setMessage({ error: errMessages });
+            })
+    }
+
+
     return (
         <CCard>
             <CCardHeader>
@@ -159,11 +158,14 @@ const CreatePurchase = () => {
                             name="store"
                             options={storeOptions}
                             value={formik.values.store}
-                            onChange={(option) => formik.setFieldValue('store', option)}
+                            onChange={(option) => {
+                                formik.setFieldValue('store', option);
+                                fetchSuppliers(option);
+                            }}
                             onBlur={formik.handleBlur}
                             className={formik.touched.store && formik.errors.store
-                                    ? 'react-select-container is-invalid'
-                                    : 'react-select-container'
+                                ? 'react-select-container is-invalid'
+                                : 'react-select-container'
                             }
                         />
                         {formik.touched.store && formik.errors.store && (
@@ -176,7 +178,8 @@ const CreatePurchase = () => {
                     {/* Supplier Field */}
                     <div className="form-group col-md-6 mb-3">
                         <CFormLabel htmlFor="supplier">Supplier</CFormLabel>
-                        <Select
+                        <Select                            
+                            isDisabled={!formik.values.store} // Disable if store is not selected
                             id="supplier"
                             name="supplier"
                             options={supplierOptions}

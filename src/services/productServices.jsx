@@ -2,6 +2,7 @@ import { axiosRequest } from "configs/axiosConfig";
 import { jsonToFormData } from "./utils";
 
 export const createProduct = async (values) => {
+    values.productImage == null && delete values.productImage;
     const productDetails = jsonToFormData(values);
     return await axiosRequest.post("/products", productDetails )
         .then(resp => resp.data)
