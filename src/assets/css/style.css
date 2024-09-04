@@ -52,3 +52,18 @@
         background-size: 100% 40%, 8px 8px
     }
 }
+
+
+.react-select-container, .react-select__control, .react-select__indicators, .react-select__single-value{
+    color:var(--cui-body-color) !important ;
+    background-color: var(--cui-body-bg) !important;
+}
+
+.react-select__menu-list{
+    background-color: var(--cui-body-bg) !important;
+    border: 1px solid rgba(190, 190, 190, 0.356);
+}
+
+.react-select__option:hover{
+    color: #212631 !important;
+}
