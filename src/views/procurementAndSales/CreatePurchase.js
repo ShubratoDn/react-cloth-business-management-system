@@ -40,7 +40,7 @@ const CreatePurchase = () => {
     const purchaseDetailValidationSchema = Yup.array()
         .of(
             Yup.object().shape({
-                productName: Yup.string().required('Product name is required'), 
+                productName: Yup.string().required('Product name is required'),
                 size: Yup.string().required('Size is required'),
                 category: Yup.string().required('Category is required'),
                 price: Yup.number()
@@ -121,7 +121,7 @@ const CreatePurchase = () => {
         },
     });
 
-    
+
     const handleAddRow = () => {
         const newRows = [...formik.values.purchaseDetails, { productName: '', size: '', category: '', price: '', quantity: '', total: 0 }];
         formik.setFieldValue('purchaseDetails', newRows);
@@ -178,7 +178,7 @@ const CreatePurchase = () => {
                     const options = data.map((supplier) => ({
                         id: supplier.id,
                         value: supplier.id,
-                        label: supplier.name + " - " +supplier.phone ,
+                        label: supplier.name + " - " + supplier.phone,
                     }));
                     setSupplierOptions(options);
                 }
@@ -331,6 +331,11 @@ const CreatePurchase = () => {
                         <hr />
 
                         <h4>Purchase Details</h4>
+
+                        {formik.errors.purchaseDetails && formik.touched.purchaseDetails ? (
+                            <div style={{ color: 'red' }}>{formik.errors.purchaseDetails.length == 40 && formik.errors.purchaseDetails}</div>
+                        ) : null}
+                        
                         <div>
                             <table className="table">
                                 <thead>
