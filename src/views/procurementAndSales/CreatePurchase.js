@@ -1,4 +1,3 @@
-// src/components/CreatePurchase.js
 import React, { useState, useEffect } from 'react';
 import { useFormik, FieldArray } from 'formik';
 import * as Yup from 'yup';
@@ -16,13 +15,16 @@ import 'react-toastify/dist/ReactToastify.css';
 import { addPurchase } from 'services/purchaseServices';
 import { getLoggedInUsersAssignedStore } from 'services/auth';
 import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
+import { searchProducts } from 'services/productServices';
+import { BASE_URL } from 'configs/axiosConfig';
 
 const CreatePurchase = () => {
     const [isLoading, setLoading] = useState(false);
     const [storeOptions, setStoreOptions] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
-    const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0 }]);
+    const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
     const [grandTotal, setGrandTotal] = useState(0); // Grand total state
+    const [productSuggestions, setProductSuggestions] = useState({});
 
 
     // Fetch Stores
@@ -59,7 +61,7 @@ const CreatePurchase = () => {
             supplier: null,
             purchaseDate: new Date().toISOString().split('T')[0], // Set initial value to today's date
             remark: '',
-            purchaseDetails: [{ productName: '', size: '', category: '', price: '', quantity: '', total: 0 }],
+            purchaseDetails: [{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
         },
         validationSchema: Yup.object({
             store: Yup.object().nullable().required('Store is required'),
@@ -67,7 +69,7 @@ const CreatePurchase = () => {
             purchaseDate: Yup.date().required('Purchase date is required'),
             remark: Yup.string().max(255, 'Remark cannot exceed 255 characters'),
 
-            purchaseDetails: purchaseDetailValidationSchema, // Add validation here
+            // purchaseDetails: purchaseDetailValidationSchema, // Add validation here
         }),
         onSubmit: (values, { resetForm }) => {
             setLoading(true);
@@ -80,11 +82,11 @@ const CreatePurchase = () => {
 
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
-                formData.append(`purchaseDetails[${index}].productName`, row.productName);
-                formData.append(`purchaseDetails[${index}].size`, row.size);
-                formData.append(`purchaseDetails[${index}].category`, row.category);
+                formData.append(`purchaseDetails[${index}].product.name`, row.productName);
+                formData.append(`purchaseDetails[${index}].product.size`, row.size);
+                formData.append(`purchaseDetails[${index}].product.category.name`, row.category);
                 formData.append(`purchaseDetails[${index}].price`, row.price);
-                formData.append(`purchaseDetails[${index}].quantity`, row.quantity);
+                formData.append(`purchaseDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
                 formData.append(`purchaseDetails[${index}].total`, row.total);
             });
 
@@ -94,9 +96,9 @@ const CreatePurchase = () => {
                         position: 'bottom-center',
                         theme: 'dark',
                     });
-                    // resetForm();
-                    // setPurchaseDetailRows([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0 }]);
-                    // setGrandTotal(0); // Reset Grand Total
+                    resetForm();
+                    setPurchaseDetailRows([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0 }]);
+                    setGrandTotal(0); // Reset Grand Total
                 })
                 .catch((err) => {
                     console.error(err);
@@ -139,16 +141,18 @@ const CreatePurchase = () => {
         const newRows = [...formik.values.purchaseDetails];
         newRows[index][field] = value;
 
-        // Update total for the row if price or quantity is changed
-        if (field === 'price' || field === 'quantity') {
+        if (field === 'productName') {
+            fetchProductSuggestions(value, index);
+        } else if (field === 'price' || field === 'quantity') {
             const price = parseFloat(newRows[index].price) || 0;
             const quantity = parseInt(newRows[index].quantity) || 0;
             newRows[index].total = price * quantity;
         }
 
         formik.setFieldValue('purchaseDetails', newRows);
-        calculateGrandTotal(newRows); // Update grand total whenever a row changes
+        calculateGrandTotal(newRows);
     };
+
 
 
     const calculateGrandTotal = (purchaseDetailRows) => {
@@ -180,6 +184,8 @@ const CreatePurchase = () => {
                         value: supplier.id,
                         label: supplier.name + " - " + supplier.phone,
                     }));
+
+                    formik.setFieldValue("supplier", null)
                     setSupplierOptions(options);
                 }
             })
@@ -219,6 +225,52 @@ const CreatePurchase = () => {
     };
 
 
+
+    const fetchProductSuggestions = async (productName, index) => {
+        if (productName.length < 1) {
+            // Fetch only if the input is at least 1 characters long
+            setProductSuggestions(prev => ({ ...prev, [index]: [] }));
+            return;
+        }
+
+        try {
+            const suggestions = await searchProducts(productName, 0, 5);
+            // setProductSuggestions(suggestions.content);
+            setProductSuggestions(prev => ({ ...prev, [index]: suggestions.content }));
+        } catch (error) {
+            console.error('Error fetching product suggestions:', error);
+            toast.error('Failed to fetch product suggestions.', {
+                position: 'bottom-center',
+                theme: 'dark',
+            });
+        }
+    };
+
+
+
+    const handleSuggestionClick = (suggestion, index) => {
+        const newRows = [...formik.values.purchaseDetails];
+        newRows[index] = {
+            ...newRows[index],
+            productName: suggestion.name,
+            size: suggestion.size,
+            category: suggestion.category.name,
+            dbImage: suggestion.image,
+            newImage: null
+            // price: '', // You might want to handle fetching price separately
+            // quantity: '', // Reset quantity if needed
+            // total: 0, // Reset total
+        };
+        formik.setFieldValue('purchaseDetails', newRows);
+        setProductSuggestions(prev => ({ ...prev, [index]: [] })); // Clear suggestions for this row
+    };
+
+
+    const handleProductSuggestionBlur = () => {
+        setTimeout(() => {
+            setProductSuggestions({})
+        }, 100)
+    }
 
 
     return (
@@ -303,6 +355,14 @@ const CreatePurchase = () => {
                         </div>
 
 
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="purchaseDate">Grand Total</CFormLabel>
+                            <div>
+                                =<span style={{ fontWeight: "bold" }}>{grandTotal}</span> TK
+                            </div>
+
+                        </div>
+
 
                         {/* Remark Field */}
                         <div className="form-group col-md-12 mb-3">
@@ -335,12 +395,13 @@ const CreatePurchase = () => {
                         {formik.errors.purchaseDetails && formik.touched.purchaseDetails ? (
                             <div style={{ color: 'red' }}>{formik.errors.purchaseDetails.length == 40 && formik.errors.purchaseDetails}</div>
                         ) : null}
-                        
+
                         <div>
                             <table className="table">
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>
+                                        <th scope="col">Image</th>
                                         <th scope="col">Name</th>
                                         <th scope="col">Size</th>
                                         <th scope="col">Category</th>
@@ -354,14 +415,28 @@ const CreatePurchase = () => {
                                     {formik.values.purchaseDetails.map((row, index) => (
                                         <tr key={index}>
                                             <td>{index + 1}</td>
-                                            <td>
+                                            <td>{}</td>
+                                            <td className='input-suggestable'>
                                                 <input
                                                     type="text"
                                                     className={`form-control ${formik.touched.purchaseDetails?.[index]?.productName && formik.errors.purchaseDetails?.[index]?.productName ? 'is-invalid' : ''}`}
                                                     value={row.productName}
-                                                    onChange={e => handleRowChange(index, 'productName', e.target.value)}
+                                                    onChange={e => { handleRowChange(index, 'productName', e.target.value) }}
+                                                    onFocus={e => { handleRowChange(index, 'productName', e.target.value) }}
+                                                    onBlur={() => handleProductSuggestionBlur()}
                                                     placeholder="Enter product name"
                                                 />
+
+                                                {productSuggestions[index] && productSuggestions[index].length > 0 && (
+                                                    <ul className='input-suggestions'>
+                                                        {productSuggestions[index].map((suggestion) => (
+                                                            <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion, index)}>
+                                                                {suggestion.name} - {suggestion.size} - {suggestion.category.name}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+
                                                 {formik.touched.purchaseDetails?.[index]?.productName && formik.errors.purchaseDetails?.[index]?.productName && (
                                                     <div className="text-danger">{formik.errors.purchaseDetails[index].productName}</div>
                                                 )}
@@ -391,13 +466,15 @@ const CreatePurchase = () => {
                                                 )}
                                             </td>
                                             <td>
-                                                <input
-                                                    type="number"
-                                                    className={`form-control ${formik.touched.purchaseDetails?.[index]?.price && formik.errors.purchaseDetails?.[index]?.price ? 'is-invalid' : ''}`}
-                                                    value={row.price}
-                                                    onChange={e => handleRowChange(index, 'price', parseFloat(e.target.value) || 0)}
-                                                    placeholder="Enter price"
-                                                />
+                                                <div style={{display:"flex", alignItems:"center"}}>
+                                                    <input
+                                                        type="number"
+                                                        className={`form-control ${formik.touched.purchaseDetails?.[index]?.price && formik.errors.purchaseDetails?.[index]?.price ? 'is-invalid' : ''}`}
+                                                        value={row.price}
+                                                        onChange={e => handleRowChange(index, 'price', parseFloat(e.target.value) || 0)}
+                                                        placeholder="Enter price"
+                                                    /> <span style={{marginLeft:"7px"}}>TK</span>
+                                                </div>
                                                 {formik.touched.purchaseDetails?.[index]?.price && formik.errors.purchaseDetails?.[index]?.price && (
                                                     <div className="text-danger">{formik.errors.purchaseDetails[index].price}</div>
                                                 )}
@@ -439,8 +516,8 @@ const CreatePurchase = () => {
                         </div>
 
                         {/* Grand Total Section */}
-                        <div className="mt-3">
-                            <h5>Grand Total: {grandTotal}</h5>
+                        <div>
+                            <div className='text-right' style={{ width: "fit-content", margin: "auto 0 auto auto", fontSize:"20px" }}>Grand Total: <span style={{fontWeight:"bolder"}}>{grandTotal} TK</span></div>
                         </div>
 
                         <div className="form-group col-md-12 mt-3">

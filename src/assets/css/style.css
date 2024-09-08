@@ -71,3 +71,32 @@
 .react-select__option:hover{
     color: #212631 !important;
 }
+
+
+
+.input-suggestable{
+    position: relative;
+}
+
+.input-suggestions{
+    /* display: none; */
+    padding: 0px;
+    position: absolute;
+    width: 90%;
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.007);
+    border-radius: 3px;
+    z-index: 1000;
+}
+
+.input-suggestions li {
+    list-style-type: none;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 3px;
+}
+
+.input-suggestions li:hover {
+    color: var(--cui-body-bg);
+    background-color: var(--cui-body-color);
+}
