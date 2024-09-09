@@ -277,7 +277,7 @@ const CreatePurchase = () => {
     const handleProductSuggestionBlur = () => {
         setTimeout(() => {
             setProductSuggestions({})
-        }, 100)
+        }, 500)
     }
 
 

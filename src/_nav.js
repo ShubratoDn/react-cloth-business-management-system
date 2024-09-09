@@ -223,6 +223,12 @@ const _nav = [
             },
             {
                 component: CNavItem,
+                name: 'Purchase History',
+                to: '/procurement/purchase-history',
+                roleRequired: "ROLE_PURCHASE_CREATE"
+            },
+            {
+                component: CNavItem,
                 name: 'Invoice List',
                 to: '/invoices',
                 roleRequired: "ROLE_STAKEHOLDER_GET"
