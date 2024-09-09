@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getToken } from "services/auth";
 
-// export const BASE_URL = "http://192.168.0.109:1234/";
+// export const BASE_URL = "http://10.160.92.148:1234/";
 export const BASE_URL = "http://localhost:1234/";
 export const API_BASE_URL = BASE_URL+"api/v1";
 

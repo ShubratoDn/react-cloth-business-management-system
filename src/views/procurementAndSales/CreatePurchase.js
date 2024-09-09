@@ -17,6 +17,8 @@ import { getLoggedInUsersAssignedStore } from 'services/auth';
 import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
 import { searchProducts } from 'services/productServices';
 import { BASE_URL } from 'configs/axiosConfig';
+import CIcon from '@coreui/icons-react';
+import { cilCamera } from '@coreui/icons';
 
 const CreatePurchase = () => {
     const [isLoading, setLoading] = useState(false);
@@ -51,6 +53,14 @@ const CreatePurchase = () => {
                 quantity: Yup.number()
                     .required('Quantity is required')
                     .min(1, 'Quantity must be greater than or equal to 1'),
+                newImage: Yup.mixed()
+                    .notRequired()
+                    .test('fileSize', 'File size is too large. Maximum size is 5MB', value => {
+                        return value ? value.size <= 5000000 : true;
+                    })
+                    .test('fileType', 'Invalid file type. Supported formats: JPEG, PNG, GIF', value => {
+                        return value ? ['image/jpeg', 'image/png', 'image/gif'].includes(value.type) : true;
+                    }),
             })
         )
         .min(1, 'At least one purchase detail is required');
@@ -69,7 +79,7 @@ const CreatePurchase = () => {
             purchaseDate: Yup.date().required('Purchase date is required'),
             remark: Yup.string().max(255, 'Remark cannot exceed 255 characters'),
 
-            // purchaseDetails: purchaseDetailValidationSchema, // Add validation here
+            purchaseDetails: purchaseDetailValidationSchema, // Add validation here
         }),
         onSubmit: (values, { resetForm }) => {
             setLoading(true);
@@ -88,6 +98,7 @@ const CreatePurchase = () => {
                 formData.append(`purchaseDetails[${index}].price`, row.price);
                 formData.append(`purchaseDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
                 formData.append(`purchaseDetails[${index}].total`, row.total);
+                row.newImage && formData.append(`purchaseDetails[${index}].productImage`, row.newImage);
             });
 
             addPurchase(formData)
@@ -125,7 +136,7 @@ const CreatePurchase = () => {
 
 
     const handleAddRow = () => {
-        const newRows = [...formik.values.purchaseDetails, { productName: '', size: '', category: '', price: '', quantity: '', total: 0 }];
+        const newRows = [...formik.values.purchaseDetails, { productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
         formik.setFieldValue('purchaseDetails', newRows);
         calculateGrandTotal(newRows); // Recalculate grand total
     };
@@ -257,9 +268,6 @@ const CreatePurchase = () => {
             category: suggestion.category.name,
             dbImage: suggestion.image,
             newImage: null
-            // price: '', // You might want to handle fetching price separately
-            // quantity: '', // Reset quantity if needed
-            // total: 0, // Reset total
         };
         formik.setFieldValue('purchaseDetails', newRows);
         setProductSuggestions(prev => ({ ...prev, [index]: [] })); // Clear suggestions for this row
@@ -415,7 +423,24 @@ const CreatePurchase = () => {
                                     {formik.values.purchaseDetails.map((row, index) => (
                                         <tr key={index}>
                                             <td>{index + 1}</td>
-                                            <td>{}</td>
+                                            <td className='product-table-image-container'>
+                                                <div className='product-table-image-selection'>
+                                                    <input
+                                                        type='file'
+                                                        onChange={e => { handleRowChange(index, 'newImage', e.target.files[0]) }}
+                                                    />
+                                                    <CIcon icon={cilCamera} className='product-table-image-selection-icon' />
+                                                </div>
+                                                <img
+                                                    className='product-table-image'
+                                                    src={row.newImage
+                                                        ? URL.createObjectURL(row.newImage)
+                                                        : BASE_URL + row.dbImage}
+                                                />
+                                                {formik.touched.purchaseDetails?.[index]?.newImage && formik.errors.purchaseDetails?.[index]?.newImage && (
+                                                    <div className="text-danger">{formik.errors.purchaseDetails[index].newImage}</div>
+                                                )}
+                                            </td>
                                             <td className='input-suggestable'>
                                                 <input
                                                     type="text"
@@ -466,14 +491,14 @@ const CreatePurchase = () => {
                                                 )}
                                             </td>
                                             <td>
-                                                <div style={{display:"flex", alignItems:"center"}}>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
                                                     <input
                                                         type="number"
                                                         className={`form-control ${formik.touched.purchaseDetails?.[index]?.price && formik.errors.purchaseDetails?.[index]?.price ? 'is-invalid' : ''}`}
                                                         value={row.price}
                                                         onChange={e => handleRowChange(index, 'price', parseFloat(e.target.value) || 0)}
                                                         placeholder="Enter price"
-                                                    /> <span style={{marginLeft:"7px"}}>TK</span>
+                                                    /> <span style={{ marginLeft: "7px" }}>TK</span>
                                                 </div>
                                                 {formik.touched.purchaseDetails?.[index]?.price && formik.errors.purchaseDetails?.[index]?.price && (
                                                     <div className="text-danger">{formik.errors.purchaseDetails[index].price}</div>
@@ -517,7 +542,7 @@ const CreatePurchase = () => {
 
                         {/* Grand Total Section */}
                         <div>
-                            <div className='text-right' style={{ width: "fit-content", margin: "auto 0 auto auto", fontSize:"20px" }}>Grand Total: <span style={{fontWeight:"bolder"}}>{grandTotal} TK</span></div>
+                            <div className='text-right' style={{ width: "fit-content", margin: "auto 0 auto auto", fontSize: "20px" }}>Grand Total: <span style={{ fontWeight: "bolder" }}>{grandTotal} TK</span></div>
                         </div>
 
                         <div className="form-group col-md-12 mt-3">
