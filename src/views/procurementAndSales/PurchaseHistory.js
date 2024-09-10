@@ -1,9 +1,319 @@
-import React from 'react'
+import { CCard, CCardBody, CCardHeader, CFormLabel } from '@coreui/react';
+import { BASE_URL } from 'configs/axiosConfig';
+import React, { useEffect, useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { toast } from 'react-toastify';
+import { searchProducts } from 'services/productServices';
+import Select from 'react-select';
+import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
+import { getLoggedInUsersAssignedStore } from 'services/auth';
+import { searchPurchase } from 'services/purchaseServices';
 
 const PurchaseHistory = () => {
-  return (
-    <div>PurchaseHistory</div>
-  )
+    const [query, setQuery] = useState('');
+
+    const [store, setStore] = useState(null);
+    const [supplier, setSupplier] = useState(null);
+    const [poNumber, setPoNumber] = useState('');
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
+
+
+    const [storeOptions, setStoreOptions] = useState([]);
+    const [supplierOptions, setSupplierOptions] = useState([]);
+
+    const [isLoading, setLoading] = useState(false);
+    const [message, setMessage] = useState({});
+    const [content, setContent] = useState([]);
+    const [data, setData] = useState(null);
+    const [page, setPage] = useState(0);
+
+    const handleSearch = (field, value) => {
+        if (field === 'store') {
+            setStore(value)
+        }
+
+        if (field === 'supplier') {
+            setSupplier(value)
+        }
+
+        if (field === 'poNumber') {
+            setPoNumber(value)
+        }
+
+        if (field === 'fromDate') {
+            setFromDate(value)
+        }
+
+        if (field === 'toDate') {
+            setToDate(value)
+        }
+
+        setPage(0);
+    };
+
+    const getPurchaseDetails = () => {
+        setLoading(true);
+        setMessage({})
+        let storeId = store && store.id;
+        let supplierId = supplier && supplier.id;
+
+        searchPurchase(storeId, supplierId, poNumber, fromDate, toDate, page, 10)
+            .then((response) => {
+                setData(response);
+                if (page === 0) {
+                    setContent(response.content);
+                } else {
+                    // Otherwise, append the new data
+                    content && setContent((prevContent) => [...prevContent, ...response.content]);
+                }
+            })
+            .catch((err) => {
+                if (err.code === 'ERR_NETWORK') {
+                    toast.error('Network error!! Failed to connect with server. \n Contact with Shubrato', {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                    return;
+                }
+
+                const errMessages = err.response.data.message;
+                setMessage({ error: errMessages });
+
+                toast.error(`${errMessages}`, {
+                    position: "bottom-center",
+                    theme: "dark",
+                });
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    setLoading(false);
+                }, 1000);
+            });
+    };
+
+    useEffect(() => {
+        if(store){
+            getPurchaseDetails();
+        }
+    }, [page, store, supplier, poNumber, fromDate, toDate]); // Trigger the effect on page or query change
+
+    const requestForData = () => {
+        setPage((prevPage) => prevPage + 1);
+    };
+
+
+
+
+    // UPDATE CODE...
+    // Fetch Stores
+    useEffect(() => {
+        const options = getLoggedInUsersAssignedStore().map((store) => ({
+            id: store.id,
+            value: store.id,
+            label: store.storeName
+                ? `${store.storeName} (${store.storeCode})`
+                : store.storeCode,
+        }));
+        setStoreOptions(options);
+    }, []);
+
+    useEffect(()=>{
+        setSupplierOptions({})
+        setSupplier(null)
+    },[store])
+
+    const fetchSuppliers = (option) => {
+        fetchSuppliersByStoreId(option.value)
+            .then((data) => {
+                if (data && data.length < 1) {
+                    toast.error('No supplier found');
+                } else {
+                    const options = data.map((supplier) => ({
+                        id: supplier.id,
+                        value: supplier.id,
+                        label: supplier.name + " - " + supplier.phone,
+                    }));
+                    setSupplierOptions(options);
+                }
+            })
+            .catch((err) => {
+                if (err.code === 'ERR_NETWORK') {
+                    toast.error('Network error! Failed to connect with server.', {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                    return;
+                }
+
+                if (err.response.data.message) {
+                    toast.error(`${err.response.data.message}`, {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                    return;
+                }
+
+                const errMessages = Object.entries(err.response.data).map(([key, value]) => {
+                    toast.error(`${value}`, {
+                        position: "bottom-center",
+                        theme: "dark",
+                    });
+                    return `${value}`;
+                }).join(", ");
+
+                console.error(errMessages);
+            });
+    };
+
+
+
+
+
+
+
+    return (
+        <>
+            <CCard>
+                <CCardHeader>
+                    Search Criteria
+                </CCardHeader>
+                <CCardBody>
+                    <form className='row'>
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="store">Store</CFormLabel>
+                            <Select
+                                id="store"
+                                name="store"
+                                options={storeOptions}
+                                value={store}
+                                onChange={(option) => {
+                                    handleSearch('store', option);
+                                    fetchSuppliers(option);
+                                }}
+                                classNamePrefix="react-select"
+                            />
+                        </div>
+
+                        {/* Supplier Field */}
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="supplier">Supplier</CFormLabel>
+                            <Select
+                                isDisabled={!store} // Disable if store is not selected
+                                id="supplier"
+                                name="supplier"
+                                options={supplierOptions}
+                                value={supplier}
+                                onChange={(option) => {
+                                    handleSearch('supplier', option);
+                                }}
+                                classNamePrefix="react-select"
+                            />
+                        </div>
+
+
+
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="supplier">PO number</CFormLabel>
+                            <input
+                                type="text"
+                                className='form-control me-3'
+                                placeholder="Enter PO number"
+                                value={poNumber}
+                                onChange={e => handleSearch('poNumber', e.target.value)}
+                                onKeyUp={e => handleSearch('poNumber', e.target.value)}
+                            />
+                        </div>
+
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="supplier">From Date</CFormLabel>
+                            <input
+                                type="date"
+                                className='form-control me-3'
+                                placeholder="Enter From Date"
+                                value={fromDate}
+                                onChange={e => handleSearch('fromDate', e.target.value)}
+                            />
+                        </div>
+
+
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="supplier">To Date</CFormLabel>
+                            <input
+                                type="date"
+                                className='form-control me-3'
+                                placeholder="Enter To Date"
+                                value={toDate}
+                                onChange={e => handleSearch('toDate', e.target.value)}
+                            />
+                        </div>
+
+                        <div className="form-group col-12">
+                            <button type='button' className='btn btn-primary' onClick={()=>store ? getPurchaseDetails(): setMessage({error:"Select any store first"})}>Search</button>
+                        </div>
+                    </form>
+                </CCardBody>
+            </CCard>
+
+            {/* LOADER AND SERVER MESSAGE */}
+            {(message.error || message.success) &&
+                <div className='p-2'>
+                    <div className={message.error ? "alert alert-danger mt-3" : "alert alert-success mt-3"} role="alert">
+                        {message.error}
+                        {message.success}
+                    </div>
+                </div>
+            }
+
+            <br/>
+
+            <CCard>
+                <CCardHeader>
+                    <h4>{"Purchase Details"}</h4>
+                </CCardHeader>
+                <CCardBody>
+                    <InfiniteScroll
+                        dataLength={content && content.length}
+                        next={requestForData}
+                        hasMore={data ? !data.last : true}
+                        loader={<div className="border-0 loading">Loading...</div>}
+                        endMessage={<div className="my-3 text-center text-muted">No more stores to load.</div>}
+                    >
+                        <table className="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th>PO Number</th>
+                                    <th scope="col">Store</th>
+                                    <th scope="col">Supplier</th>
+                                    <th scope="col">Purchase Date</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Created by</th>
+                                    <th scope="col">Is Authorized</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {content && content.length > 0 && (
+                                    content.map((details) => (
+                                        <tr key={details.id}>
+                                            <td>{details.id}</td>
+                                            <td>{details.poNumber && details.poNumber}</td>
+                                            <td>{details.store.storeName}</td>
+                                            <td>{details.supplier.name}</td>
+                                            <td>{details.purchaseDate}</td>
+                                            <td>{details.totalAmount}</td>
+                                            <td>{details.addedBy.name}</td>
+                                            <td>{details.isApproved ? "Yes" : "No"}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </InfiniteScroll>
+                </CCardBody>
+            </CCard>
+        </>
+    );
 }
 
 export default PurchaseHistory

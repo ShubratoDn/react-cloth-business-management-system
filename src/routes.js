@@ -116,7 +116,7 @@ const routes = [
 
       // PROCUREMENT & SALES
       { path: '/procurement/purchase', exact: true, name: "Purchase", element: CreatePurchase},
-      { path: '/procurement/purchase-history', exact: true, name: "Purchase", element: PurchaseHistory},
+      { path: '/procurement/purchase-history', exact: true, name: "Purchase History", element: PurchaseHistory},
       // PROCUREMENT & SALES ENDS
 
 

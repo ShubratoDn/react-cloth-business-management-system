@@ -108,8 +108,9 @@ const CreatePurchase = () => {
                         theme: 'dark',
                     });
                     resetForm();
-                    setPurchaseDetailRows([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0 }]);
+                    setPurchaseDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
                     setGrandTotal(0); // Reset Grand Total
+                    setProductSuggestions({})
                 })
                 .catch((err) => {
                     console.error(err);
