@@ -149,3 +149,7 @@
     color: var(--cui-body-bg) !important;
     font-size: 100px;
 }
+
+input{
+    min-width: 100px;
+}

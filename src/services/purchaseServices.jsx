@@ -7,12 +7,13 @@ export const addPurchase = async (values) => {
 }
 
 
-export const searchPurchase = async (storeId, supplierId, poNumber, fromDate, toDate, page, size) => {
+export const searchPurchase = async (storeId, supplierId, poNumber, status, fromDate, toDate, page, size) => {
     return await axiosRequest.get(`/purchases/search`, {
         params: {
             storeId: storeId || '',  // Default to empty string if undefined
             supplierId: supplierId || '',
             poNumber: poNumber || '',
+            status: status || '',
             fromDate: fromDate || '',
             toDate: toDate || '',
             page: page || 0,         // Default to 0 if page is not provided

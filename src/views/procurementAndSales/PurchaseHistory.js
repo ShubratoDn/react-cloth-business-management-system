@@ -15,6 +15,7 @@ const PurchaseHistory = () => {
     const [store, setStore] = useState(null);
     const [supplier, setSupplier] = useState(null);
     const [poNumber, setPoNumber] = useState('');
+    const [status, setStatus] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
 
@@ -49,6 +50,12 @@ const PurchaseHistory = () => {
             setToDate(value)
         }
 
+        if (field === 'status') {
+            setStatus(value);
+        }
+
+        console.log(value)
+
         setPage(0);
     };
 
@@ -58,7 +65,7 @@ const PurchaseHistory = () => {
         let storeId = store && store.id;
         let supplierId = supplier && supplier.id;
 
-        searchPurchase(storeId, supplierId, poNumber, fromDate, toDate, page, 10)
+        searchPurchase(storeId, supplierId, poNumber, status, fromDate, toDate, page, 10)
             .then((response) => {
                 setData(response);
                 if (page === 0) {
@@ -93,10 +100,10 @@ const PurchaseHistory = () => {
     };
 
     useEffect(() => {
-        if(store){
+        if (store) {
             getPurchaseDetails();
         }
-    }, [page, store, supplier, poNumber, fromDate, toDate]); // Trigger the effect on page or query change
+    }, [page, store, supplier, poNumber, fromDate, toDate, status]); // Trigger the effect on page or query change
 
     const requestForData = () => {
         setPage((prevPage) => prevPage + 1);
@@ -118,10 +125,10 @@ const PurchaseHistory = () => {
         setStoreOptions(options);
     }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
         setSupplierOptions({})
         setSupplier(null)
-    },[store])
+    }, [store])
 
     const fetchSuppliers = (option) => {
         fetchSuppliersByStoreId(option.value)
@@ -138,6 +145,8 @@ const PurchaseHistory = () => {
                 }
             })
             .catch((err) => {
+                setSupplierOptions([]);
+                
                 if (err.code === 'ERR_NETWORK') {
                     toast.error('Network error! Failed to connect with server.', {
                         position: "bottom-center",
@@ -225,6 +234,23 @@ const PurchaseHistory = () => {
                             />
                         </div>
 
+
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="status">Status</CFormLabel>
+                            <select
+                                id="status"
+                                className='form-control me-3'
+                                value={status}
+                                onChange={e => handleSearch('status', e.target.value)}
+                            >
+                                <option value=""> -- Select Status --</option>
+                                <option value="OPEN">OPEN</option>
+                                <option value="REJECTED">REJECTED</option>
+                                <option value="APPROVED">APPROVED</option>
+                            </select>
+                        </div>
+
+
                         <div className="form-group col-md-6 mb-3">
                             <CFormLabel htmlFor="supplier">From Date</CFormLabel>
                             <input
@@ -249,7 +275,7 @@ const PurchaseHistory = () => {
                         </div>
 
                         <div className="form-group col-12">
-                            <button type='button' className='btn btn-primary' onClick={()=>store ? getPurchaseDetails(): setMessage({error:"Select any store first"})}>Search</button>
+                            <button type='button' className='btn btn-primary' onClick={() => store ? getPurchaseDetails() : setMessage({ error: "Select any store first" })}>Search</button>
                         </div>
                     </form>
                 </CCardBody>
@@ -265,7 +291,7 @@ const PurchaseHistory = () => {
                 </div>
             }
 
-            <br/>
+            <br />
 
             <CCard>
                 <CCardHeader>
@@ -279,7 +305,7 @@ const PurchaseHistory = () => {
                         loader={<div className="border-0 loading">Loading...</div>}
                         endMessage={<div className="my-3 text-center text-muted">No more stores to load.</div>}
                     >
-                        <table className="table table-bordered">
+                        <table className="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
@@ -289,7 +315,8 @@ const PurchaseHistory = () => {
                                     <th scope="col">Purchase Date</th>
                                     <th scope="col">Amount</th>
                                     <th scope="col">Created by</th>
-                                    <th scope="col">Is Authorized</th>
+                                    <th scope="col">Status</th>
+                                    <th scope='col'>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -303,7 +330,10 @@ const PurchaseHistory = () => {
                                             <td>{details.purchaseDate}</td>
                                             <td>{details.totalAmount}</td>
                                             <td>{details.addedBy.name}</td>
-                                            <td>{details.isApproved ? "Yes" : "No"}</td>
+                                            <td>{details.purchaseStatus}</td>
+                                            <td>
+                                                <button type='button' className='btn btn-success btn-sm' >View</button>
+                                            </td>
                                         </tr>
                                     ))
                                 )}

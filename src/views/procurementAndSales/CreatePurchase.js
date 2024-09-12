@@ -9,6 +9,7 @@ import {
     CButton,
     CFormGroup,
     CFormLabel,
+    CAlert,
 } from '@coreui/react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -22,6 +23,7 @@ import { cilCamera } from '@coreui/icons';
 
 const CreatePurchase = () => {
     const [isLoading, setLoading] = useState(false);
+    const [message, setMessage] = useState({});
     const [storeOptions, setStoreOptions] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
     const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
@@ -55,8 +57,8 @@ const CreatePurchase = () => {
                     .min(1, 'Quantity must be greater than or equal to 1'),
                 newImage: Yup.mixed()
                     .notRequired()
-                    .test('fileSize', 'File size is too large. Maximum size is 5MB', value => {
-                        return value ? value.size <= 5000000 : true;
+                    .test('fileSize', 'File size is too large. Maximum size is 10MB', value => {
+                        return value ? value.size <= 10000000 : true;
                     })
                     .test('fileType', 'Invalid file type. Supported formats: JPEG, PNG, GIF', value => {
                         return value ? ['image/jpeg', 'image/png', 'image/gif'].includes(value.type) : true;
@@ -82,6 +84,7 @@ const CreatePurchase = () => {
             purchaseDetails: purchaseDetailValidationSchema, // Add validation here
         }),
         onSubmit: (values, { resetForm }) => {
+            setMessage({})
             setLoading(true);
             toast.dismiss();
 
@@ -89,6 +92,7 @@ const CreatePurchase = () => {
             formData.append("store.id", values.store.id);
             formData.append("supplier.id", values.supplier.id);
             formData.append("purchaseDate", values.purchaseDate);
+            FormData.append("remark", values.remark);
 
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
@@ -103,10 +107,11 @@ const CreatePurchase = () => {
 
             addPurchase(formData)
                 .then((response) => {
-                    toast.success('Purchase created successfully!', {
+                    toast.success("Purchase (" + response.poNumber + ") has been created successfully.", {
                         position: 'bottom-center',
                         theme: 'dark',
                     });
+                    setMessage({ success: "Purchase (" + response.poNumber + ") has been created successfully." })
                     resetForm();
                     setPurchaseDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
                     setGrandTotal(0); // Reset Grand Total
@@ -207,6 +212,7 @@ const CreatePurchase = () => {
                         position: "bottom-center",
                         theme: "dark",
                     });
+                    setMessage({ error: "Network error! Failed to connect with server." })
                     return;
                 }
 
@@ -215,6 +221,7 @@ const CreatePurchase = () => {
                         position: "bottom-center",
                         theme: "dark",
                     });
+                    setMessage({ error: err.response.data.message })
                     return;
                 }
 
@@ -225,7 +232,7 @@ const CreatePurchase = () => {
                     });
                     return `${value}`;
                 }).join(", ");
-
+                setMessage({ error: errMessages })
                 console.error(errMessages);
             });
     };
@@ -284,6 +291,17 @@ const CreatePurchase = () => {
 
     return (
         <>
+            {(message.error || message.success) &&
+                <CAlert
+                    color={message.success ? "success" : "danger"}
+                    dismissible
+                >
+                    {message.error}
+                    {message.success}
+                </CAlert>
+            }
+
+
             <CCard>
                 <CCardHeader>
                     <h4>Create Purchase</h4>
