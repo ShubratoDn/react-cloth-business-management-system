@@ -92,7 +92,7 @@ const CreatePurchase = () => {
             formData.append("store.id", values.store.id);
             formData.append("supplier.id", values.supplier.id);
             formData.append("purchaseDate", values.purchaseDate);
-            FormData.append("remark", values.remark);
+            formData.append("remark", values.remark);
 
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
