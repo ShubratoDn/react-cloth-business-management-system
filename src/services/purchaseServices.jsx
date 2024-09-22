@@ -1,5 +1,4 @@
 import { axiosRequest } from "configs/axiosConfig"
-import { jsonToFormData } from "./utils"
 
 
 export const addPurchase = async (values) => {
@@ -20,4 +19,8 @@ export const searchPurchase = async (storeId, supplierId, poNumber, status, from
             size: size || 10         // Default to 10 if size is not provided
         }
     }).then((resp) => resp.data)
+}
+
+export const findPurchaseByIdAndPO = async (id, po)=>{
+    return await axiosRequest.get(`/purchases/${id}/${po}`).then((resp)=>resp.data)
 }

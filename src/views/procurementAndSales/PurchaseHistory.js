@@ -1,4 +1,4 @@
-import { CCard, CCardBody, CCardHeader, CFormLabel } from '@coreui/react';
+import { CButton, CCard, CCardBody, CCardHeader, CFormLabel, CModal, CModalBody, CModalHeader } from '@coreui/react';
 import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -8,9 +8,10 @@ import Select from 'react-select';
 import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
 import { getLoggedInUsersAssignedStore } from 'services/auth';
 import { searchPurchase } from 'services/purchaseServices';
+import ViewPurchaseDetails from './ViewPurchaseDetails';
+import { Link, useNavigate } from 'react-router-dom';
 
 const PurchaseHistory = () => {
-    const [query, setQuery] = useState('');
 
     const [store, setStore] = useState(null);
     const [supplier, setSupplier] = useState(null);
@@ -28,6 +29,15 @@ const PurchaseHistory = () => {
     const [content, setContent] = useState([]);
     const [data, setData] = useState(null);
     const [page, setPage] = useState(0);
+
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedPurchase, setSelectedPurchase] = useState(null);
+
+    const handleViewClick = (details) => {
+        setSelectedPurchase(details); // Set the selected purchase
+        setModalVisible(true); // Show the modal
+    };
 
     const handleSearch = (field, value) => {
         if (field === 'store') {
@@ -146,7 +156,7 @@ const PurchaseHistory = () => {
             })
             .catch((err) => {
                 setSupplierOptions([]);
-                
+
                 if (err.code === 'ERR_NETWORK') {
                     toast.error('Network error! Failed to connect with server.', {
                         position: "bottom-center",
@@ -302,8 +312,8 @@ const PurchaseHistory = () => {
                         dataLength={content && content.length}
                         next={requestForData}
                         hasMore={data ? !data.last : true}
-                        loader={<div className="border-0 loading">Loading...</div>}
-                        endMessage={<div className="my-3 text-center text-muted">No more stores to load.</div>}
+                        loader={content ? "Insert any search Criteria" : <div className="border-0 loading">Loading...</div>}
+                        endMessage={<div className="my-3 text-center text-muted">No more details to load.</div>}
                     >
                         <table className="table table-bordered table-striped">
                             <thead>
@@ -332,7 +342,13 @@ const PurchaseHistory = () => {
                                             <td>{details.addedBy.name}</td>
                                             <td>{details.purchaseStatus}</td>
                                             <td>
-                                                <button type='button' className='btn btn-success btn-sm' >View</button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-success btn-sm"
+                                                    onClick={() => handleViewClick(details)}
+                                                >
+                                                    View
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -342,6 +358,23 @@ const PurchaseHistory = () => {
                     </InfiniteScroll>
                 </CCardBody>
             </CCard>
+
+
+            {/* Modal for viewing purchase details */}
+            <CModal visible={modalVisible} onClose={() => setModalVisible(false)} size='lg'>
+                <CModalHeader closeButton>
+                    <h5>Purchase Details</h5>
+                </CModalHeader>
+                <CModalBody>
+                    {/* Pass the selectedPurchase as props to ViewPurchaseDetails */}
+                    {selectedPurchase && <ViewPurchaseDetails purchaseInfoFromViewPage={selectedPurchase} />}
+                </CModalBody>
+                <div className="modal-footer">
+                    <CButton color="secondary" onClick={() => setModalVisible(false)}>
+                        Close
+                    </CButton>
+                </div>
+            </CModal>
         </>
     );
 }

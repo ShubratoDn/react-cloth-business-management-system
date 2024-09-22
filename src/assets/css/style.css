@@ -1,15 +1,15 @@
-.image-preview{
+.image-preview {
     width: 60px;
     height: 60px;
     object-fit: cover;
     margin: 0 10px;
 }
 
-.image-preview img{
+.image-preview img {
     border-radius: 2px;
 }
 
-.loaderContainer{
+.loaderContainer {
     background-color: rgba(255, 255, 255, 0.174);
     backdrop-filter: blur(3px);
     position: absolute;
@@ -19,6 +19,7 @@
     justify-content: center;
     align-items: center;
 }
+
 /* HTML: <div class="loader"></div> */
 .loader {
     display: inline-flex;
@@ -54,31 +55,34 @@
 }
 
 
-.react-select-container, .react-select__control, .react-select__indicators, .react-select__single-value{
-    color:var(--cui-body-color) !important ;
+.react-select-container,
+.react-select__control,
+.react-select__indicators,
+.react-select__single-value {
+    color: var(--cui-body-color) !important;
     background-color: var(--cui-body-bg) !important;
 }
 
-.react-select__input-container{
-        color: var(--cui-body-color) !important;
+.react-select__input-container {
+    color: var(--cui-body-color) !important;
 }
 
-.react-select__menu-list{
+.react-select__menu-list {
     background-color: var(--cui-body-bg) !important;
     border: 1px solid rgba(190, 190, 190, 0.356);
 }
 
-.react-select__option:hover{
+.react-select__option:hover {
     color: #212631 !important;
 }
 
 
 
-.input-suggestable{
+.input-suggestable {
     position: relative;
 }
 
-.input-suggestions{
+.input-suggestions {
     /* display: none; */
     padding: 0px;
     position: absolute;
@@ -101,23 +105,23 @@
     background-color: var(--cui-body-color);
 }
 
-.product-table-image{
+.product-table-image {
     width: 50px;
     height: 50px;
     border-radius: 5px;
     object-fit: cover;
 }
 
-.product-table-image-container{
+.product-table-image-container {
     position: relative;
     /* background-color: red !important; */
 }
 
-.product-table-image-container:hover .product-table-image-selection{
+.product-table-image-container:hover .product-table-image-selection {
     display: flex;
 }
 
-.product-table-image-selection{
+.product-table-image-selection {
     position: absolute;
     /* bottom: 100%; */
     left: 50%;
@@ -136,7 +140,7 @@
     border-radius: 7px;
 }
 
-.product-table-image-selection input[type="file"]{
+.product-table-image-selection input[type="file"] {
     position: absolute;
     left: 0;
     top: 0;
@@ -145,11 +149,48 @@
     opacity: 0;
 }
 
-.product-table-image-selection-icon{
+.product-table-image-selection-icon {
     color: var(--cui-body-bg) !important;
     font-size: 100px;
 }
 
-input{
+/* input{
     min-width: 100px;
+} */
+
+
+.purchase-details-card-body{
+    overflow-x: auto;
+}
+/* width */
+.purchase-details-card-body::-webkit-scrollbar {
+    width: 1px;
+    height: 3px;
+}
+
+/* Track */
+.purchase-details-card-body::-webkit-scrollbar-track {
+    background: #03f1538f;
+}
+
+/* Handle */
+.purchase-details-card-body::-webkit-scrollbar-thumb {
+    background: var(--cui-body-bg);
+}
+
+/* Handle on hover */
+.purchase-details-card-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.purchase-details-view-table p {
+    margin-bottom: 0;
+    padding-left: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+
+.modal-dialog {
+    min-width: 60vw !important;
+    max-width: 80vw !important;
 }
