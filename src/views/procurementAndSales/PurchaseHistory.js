@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { searchProducts } from 'services/productServices';
 import Select from 'react-select';
 import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
-import { getLoggedInUsersAssignedStore } from 'services/auth';
+import { getCurrentUserInfo, getLoggedInUsersAssignedStore, userHasRole } from 'services/auth';
 import { searchPurchase } from 'services/purchaseServices';
 import ViewPurchaseDetails from './ViewPurchaseDetails';
 import { Link, useNavigate } from 'react-router-dom';
@@ -187,6 +187,14 @@ const PurchaseHistory = () => {
 
 
 
+    const isPOEditabel = (details) => {
+        let status = details.purchaseStatus
+        if (status === "OPEN" || status === "REJECTED") {
+            if ((getCurrentUserInfo().id === details.addedBy.id) || userHasRole("ROLE_PURCHASE_UPDATE")) {
+                return true;
+            }
+        }
+    }
 
 
 
@@ -255,8 +263,10 @@ const PurchaseHistory = () => {
                             >
                                 <option value=""> -- Select Status --</option>
                                 <option value="OPEN">OPEN</option>
+                                <option value="SUBMITTED">SUBMITTED</option>
                                 <option value="REJECTED">REJECTED</option>
-                                <option value="APPROVED">APPROVED</option>
+                                <option value="REJECTED_MODIFIED">REJECTED_MODIFIED</option>
+                                <option value="CLOSED">CLOSED</option>
                             </select>
                         </div>
 
@@ -344,11 +354,17 @@ const PurchaseHistory = () => {
                                             <td>
                                                 <button
                                                     type="button"
-                                                    className="btn btn-success btn-sm"
+                                                    className="btn btn-primary btn-sm me-2"
                                                     onClick={() => handleViewClick(details)}
                                                 >
                                                     View
                                                 </button>
+
+                                                {
+                                                    isPOEditabel && 
+                                                    <Link to={`/procurement/edit-purchase-details/${details.id}/${details.poNumber}`} className="btn btn-success btn-sm">Edit </Link>
+                                                }
+
                                             </td>
                                         </tr>
                                     ))

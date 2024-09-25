@@ -6,6 +6,7 @@ import {
     cilBuilding,
     cilCalculator,
     cilCart,
+    cilCash,
     cilChartPie,
     cilCursor,
     cilDescription,
@@ -40,13 +41,14 @@ const _nav = [
     {
         component: CNavTitle,
         name: 'User Management',
+        roleRequired: ["ROLE_USER_CREATE","ROLE_USER_GET"]
     },
     {
         component: CNavGroup,
         name: 'Manage User',
         to: '/user',
         icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
-        roleRequired: ["ROLE_USER_CREATE","ROLE_USER_GET"],
+        roleRequired: ["ROLE_USER_CREATE","ROLE_USER_GET","ROLE_ROLE_ASSIGN"],
         items: [
             {
                 component: CNavItem,
@@ -210,10 +212,10 @@ const _nav = [
     },
     {
         component: CNavGroup,
-        name: 'Procurement & Sales',
-        to: '/products',
+        name: 'Procurement',
+        to: '/procurement',
         icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
-        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_STAKEHOLDER_GET", "ROLE_STAKEHOLDER_UPDATE", ],
+        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_PURCHASE_SEARCH", "ROLE_PURCHASE_GET", ],
         items: [
             {
                 component: CNavItem,
@@ -227,6 +229,22 @@ const _nav = [
                 to: '/procurement/purchase-history',
                 roleRequired: "ROLE_PURCHASE_CREATE"
             },
+            {
+                component: CNavItem,
+                name: 'Invoice List',
+                to: '/invoices',
+                roleRequired: "ROLE_STAKEHOLDER_GET"
+            },                   
+        ]
+    },
+
+    {
+        component: CNavGroup,
+        name: 'Sales',
+        to: '/sales',
+        icon: <CIcon icon={cilCash} customClassName="nav-icon" />,
+        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_STAKEHOLDER_GET", "ROLE_STAKEHOLDER_UPDATE", ],
+        items: [            
             {
                 component: CNavItem,
                 name: 'Invoice List',

@@ -2,6 +2,7 @@ import { CCard, CCardBody, CCardHeader } from '@coreui/react';
 import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom';
+import { getCurrentUserInfo, userHasRole } from 'services/auth';
 import { findPurchaseByIdAndPO } from 'services/purchaseServices';
 import Page404 from 'views/pages/page404/Page404';
 
@@ -23,8 +24,9 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage }) => {
         setLoading(true)
         findPurchaseByIdAndPO(id, poNumber)
             .then((data) => {
-                console.log(data)
-                data && setPurchase(data)
+                if((getCurrentUserInfo().id === data.addedBy.id) || userHasRole("ROLE_PURCHASE_GET")){
+                    data && setPurchase(data)
+                }
             })
             .catch((err) => {
                 console.log(err);

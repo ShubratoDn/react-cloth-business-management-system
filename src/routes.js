@@ -15,6 +15,7 @@ import CreateStakeholder from 'views/stakeholderManagement/CreateStakeholder'
 import CreatePurchase from 'views/procurementAndSales/CreatePurchase'
 import PurchaseHistory from 'views/procurementAndSales/PurchaseHistory'
 import ViewPurchaseDetails from 'views/procurementAndSales/ViewPurchaseDetails'
+import UpdatePurchase from 'views/procurementAndSales/UpdatePurchase'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -119,6 +120,7 @@ const routes = [
       { path: '/procurement/purchase', exact: true, name: "Purchase", element: CreatePurchase},
       { path: '/procurement/purchase-history', name: "Purchase History", element: PurchaseHistory},
       { path: '/procurement/view-purchase-details/:id/:poNumber', name: "View purchase details", element: ViewPurchaseDetails},
+      { path: '/procurement/edit-purchase-details/:id/:poNumber', name: "Edit purchase details", element: UpdatePurchase},
       // PROCUREMENT & SALES ENDS
 
 
