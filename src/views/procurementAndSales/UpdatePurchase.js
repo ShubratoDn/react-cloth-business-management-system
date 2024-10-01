@@ -22,15 +22,17 @@ import CIcon from '@coreui/icons-react';
 import { cilCamera } from '@coreui/icons';
 import { useParams } from 'react-router-dom';
 import Page404 from 'views/pages/page404/Page404';
+import ViewPurchaseDetails from './ViewPurchaseDetails';
 
 const UpdatePurchase = () => {
     const [isLoading, setLoading] = useState(false);
     const [message, setMessage] = useState({});
     const [poNotFound, setPOnotFound] = useState(false);
     const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
+    const [isUpdatedPurchase, setUpdatedPurchase] = useState(false);
     const [storeOptions, setStoreOptions] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
-    const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
+    const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ id:'', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
     const [grandTotal, setGrandTotal] = useState(0); // Grand total state
     const [productSuggestions, setProductSuggestions] = useState({});
 
@@ -84,7 +86,7 @@ const UpdatePurchase = () => {
             purchaseStatus: '',
             remark: '',
             
-            purchaseDetails: [{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
+            purchaseDetails: [{ id: '',  productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
         },
         validationSchema: Yup.object({
             store: Yup.object().nullable().required('Store is required'),
@@ -108,6 +110,7 @@ const UpdatePurchase = () => {
 
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
+                formData.append(`purchaseDetails[${index}].id`, row.id);
                 formData.append(`purchaseDetails[${index}].product.name`, row.productName);
                 formData.append(`purchaseDetails[${index}].product.size`, row.size);
                 formData.append(`purchaseDetails[${index}].product.category.name`, row.category);
@@ -118,6 +121,7 @@ const UpdatePurchase = () => {
             });
 
             updatePurchase(id, poNumber, formData)
+            
                 .then((response) => {
                     toast.success("Purchase (" + response.poNumber + ") has been updated successfully.", {
                         position: 'bottom-center',
@@ -125,7 +129,8 @@ const UpdatePurchase = () => {
                     });
                     setMessage({ success: "Purchase (" + response.poNumber + ") has been updated successfully." })
                     resetForm();
-                    setPurchaseDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
+                    setUpdatedPurchase(true);
+                    setPurchaseDetailRows([{ id: '', productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
                     setGrandTotal(0); // Reset Grand Total
                     setProductSuggestions({})
                 })
@@ -163,8 +168,7 @@ const UpdatePurchase = () => {
                     return;
                 }
 
-                if (data && ((getCurrentUserInfo().id === data.addedBy.id) && data.purchaseStatus === "OPEN") || userHasRole("ROLE_PURCHASE_GET")) {
-
+                if (data && ((data.purchaseStatus === "OPEN" || data.purchaseStatus === "REJECTED_MODIFIED") && (getCurrentUserInfo().id === data.addedBy.id || userHasRole("ROLE_PURCHASE_UPDATE")))) {
                     setPurchase(data);
 
                     let storeOption = {
@@ -190,19 +194,26 @@ const UpdatePurchase = () => {
 
                     // Extract and Transform purchaseDetails from the JSON
                     const dbPurchaseDetails = data.purchaseDetails.map((row, index) => ({
+                        id : row.id,
                         productName: row.product.name || '',
                         size: row.product.size || '',
                         category: row.product.category.name || '',
                         price: row.price || '',
                         quantity: row.quantity || '',
                         total: (row.price * row.quantity) || 0,
-                        dbImage: row.product.image || '',
+                        dbImage: row.image ? row.image : ( row.product.image || ''),
                         newImage: null,
                     }));
                     // Set the transformed purchaseDetails into the Formik field value
                     formik.setFieldValue('purchaseDetails', dbPurchaseDetails);
                     calculateGrandTotal(dbPurchaseDetails);
 
+                }else{
+                    setUnauthorizedAccess(true)
+                    toast.error("Purchase Order is not editable", {
+                        position: "bottom-center",
+                        theme: "dark",
+                    })
                 }
             })
             .catch((err) => {
@@ -215,7 +226,7 @@ const UpdatePurchase = () => {
 
 
     const handleAddRow = () => {
-        const newRows = [...formik.values.purchaseDetails, { productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
+        const newRows = [...formik.values.purchaseDetails, {id:'', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
         formik.setFieldValue('purchaseDetails', newRows);
         calculateGrandTotal(newRows); // Recalculate grand total
     };
@@ -366,6 +377,13 @@ const UpdatePurchase = () => {
     if(poNotFound){
         return <Page404></Page404>
     }
+
+
+    if(isUpdatedPurchase || unauthorizedAccess){
+        return (<ViewPurchaseDetails purchaseInfoFromViewPage={purchase}></ViewPurchaseDetails>)
+    }
+
+
 
     return (
         <>
