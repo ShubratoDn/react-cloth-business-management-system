@@ -5,6 +5,9 @@ export const addPurchase = async (values) => {
     return await axiosRequest.post(`/purchases`, values).then((resp) => resp.data)
 }
 
+export const updatePurchase = async (id, poNumber, values) => {
+    return await axiosRequest.put(`/purchases/${id}/${poNumber}`, values).then((resp) => resp.data)
+}
 
 export const searchPurchase = async (storeId, supplierId, poNumber, status, fromDate, toDate, page, size) => {
     return await axiosRequest.get(`/purchases/search`, {

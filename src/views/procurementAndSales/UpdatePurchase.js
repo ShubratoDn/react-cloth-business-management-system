@@ -13,7 +13,7 @@ import {
 } from '@coreui/react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { addPurchase, findPurchaseByIdAndPO } from 'services/purchaseServices';
+import { addPurchase, findPurchaseByIdAndPO, updatePurchase } from 'services/purchaseServices';
 import { getCurrentUserInfo, getLoggedInUsersAssignedStore, userHasRole } from 'services/auth';
 import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
 import { searchProducts } from 'services/productServices';
@@ -21,10 +21,13 @@ import { BASE_URL } from 'configs/axiosConfig';
 import CIcon from '@coreui/icons-react';
 import { cilCamera } from '@coreui/icons';
 import { useParams } from 'react-router-dom';
+import Page404 from 'views/pages/page404/Page404';
 
 const UpdatePurchase = () => {
     const [isLoading, setLoading] = useState(false);
     const [message, setMessage] = useState({});
+    const [poNotFound, setPOnotFound] = useState(false);
+    const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
     const [storeOptions, setStoreOptions] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
     const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
@@ -78,7 +81,9 @@ const UpdatePurchase = () => {
             store: null,
             supplier: null,
             purchaseDate: new Date().toISOString().split('T')[0], // Set initial value to today's date
+            purchaseStatus: '',
             remark: '',
+            
             purchaseDetails: [{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
         },
         validationSchema: Yup.object({
@@ -86,7 +91,7 @@ const UpdatePurchase = () => {
             supplier: Yup.object().nullable().required('Supplier is required'),
             purchaseDate: Yup.date().required('Purchase date is required'),
             remark: Yup.string().max(255, 'Remark cannot exceed 255 characters'),
-
+            purchaseStatus: Yup.string().required('Purchase status is required'),
             purchaseDetails: purchaseDetailValidationSchema, // Add validation here
         }),
         onSubmit: (values, { resetForm }) => {
@@ -99,6 +104,7 @@ const UpdatePurchase = () => {
             formData.append("supplier.id", values.supplier.id);
             formData.append("purchaseDate", values.purchaseDate);
             formData.append("remark", values.remark);
+            formData.append("purchaseStatus", values.purchaseStatus)
 
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
@@ -111,13 +117,13 @@ const UpdatePurchase = () => {
                 row.newImage && formData.append(`purchaseDetails[${index}].productImage`, row.newImage);
             });
 
-            addPurchase(formData)
+            updatePurchase(id, poNumber, formData)
                 .then((response) => {
-                    toast.success("Purchase (" + response.poNumber + ") has been created successfully.", {
+                    toast.success("Purchase (" + response.poNumber + ") has been updated successfully.", {
                         position: 'bottom-center',
                         theme: 'dark',
                     });
-                    setMessage({ success: "Purchase (" + response.poNumber + ") has been created successfully." })
+                    setMessage({ success: "Purchase (" + response.poNumber + ") has been updated successfully." })
                     resetForm();
                     setPurchaseDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
                     setGrandTotal(0); // Reset Grand Total
@@ -151,8 +157,13 @@ const UpdatePurchase = () => {
         setLoading(true)
         findPurchaseByIdAndPO(id, poNumber)
             .then((data) => {
-                console.log(data)
-                if (data && (getCurrentUserInfo().id === data.addedBy.id) || userHasRole("ROLE_PURCHASE_GET")) {
+                // console.log(data)
+                if(!data){
+                    setPOnotFound(true);
+                    return;
+                }
+
+                if (data && ((getCurrentUserInfo().id === data.addedBy.id) && data.purchaseStatus === "OPEN") || userHasRole("ROLE_PURCHASE_GET")) {
 
                     setPurchase(data);
 
@@ -171,9 +182,27 @@ const UpdatePurchase = () => {
                     }
 
                     //set store value
-                    formik.setFieldValue("store", storeOption );
+                    formik.setFieldValue("store", storeOption);
                     formik.setFieldValue("supplier", supplierOption);
                     formik.setFieldValue("purchaseDate", data.purchaseDate)
+                    formik.setFieldValue("purchaseStatus", data.purchaseStatus)
+                    formik.setFieldValue("remark", data.remark ? data.remark : '')
+
+                    // Extract and Transform purchaseDetails from the JSON
+                    const dbPurchaseDetails = data.purchaseDetails.map((row, index) => ({
+                        productName: row.product.name || '',
+                        size: row.product.size || '',
+                        category: row.product.category.name || '',
+                        price: row.price || '',
+                        quantity: row.quantity || '',
+                        total: (row.price * row.quantity) || 0,
+                        dbImage: row.product.image || '',
+                        newImage: null,
+                    }));
+                    // Set the transformed purchaseDetails into the Formik field value
+                    formik.setFieldValue('purchaseDetails', dbPurchaseDetails);
+                    calculateGrandTotal(dbPurchaseDetails);
+
                 }
             })
             .catch((err) => {
@@ -333,6 +362,11 @@ const UpdatePurchase = () => {
     }
 
 
+
+    if(poNotFound){
+        return <Page404></Page404>
+    }
+
     return (
         <>
             {(message.error || message.success) &&
@@ -348,7 +382,7 @@ const UpdatePurchase = () => {
 
             <CCard>
                 <CCardHeader>
-                    <h4>Edit Purchase</h4>
+                    <h4>Editing Purchase Order - {purchase && purchase.poNumber}</h4>
                 </CCardHeader>
                 <CCardBody>
                     <form onSubmit={formik.handleSubmit} className="row">
@@ -426,6 +460,33 @@ const UpdatePurchase = () => {
                         </div>
 
 
+                        {/* Purchase Status Field */}
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="purchaseStatus">Purchase Status</CFormLabel>
+                            <select
+                                className={`form-control ${formik.touched.purchaseStatus && formik.errors.purchaseStatus
+                                    ? 'is-invalid'
+                                    : ''
+                                    }`}
+                                id="purchaseStatus"
+                                name="purchaseStatus"
+                                value={formik.values.purchaseStatus}
+                                onChange={handleChange}
+                                onBlur={formik.handleBlur}
+                            >
+                                <option value="" label=" -- Select status --" />
+                                <option value="OPEN" label="Open" />
+                                <option value="SUBMITTED" label="Submitted" />
+                            </select>
+                            {formik.touched.purchaseStatus && formik.errors.purchaseStatus && (
+                                <div className="text-danger mt-1">
+                                    {formik.errors.purchaseStatus}
+                                </div>
+                            )}
+                        </div>
+
+
+
                         <div className="form-group col-md-6 mb-3">
                             <CFormLabel htmlFor="purchaseDate">Grand Total</CFormLabel>
                             <div>
@@ -468,7 +529,7 @@ const UpdatePurchase = () => {
                         ) : null}
 
                         <div>
-                            <table className="table">
+                            <table className="table purchase-details">
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>

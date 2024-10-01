@@ -424,7 +424,7 @@ const CreatePurchase = () => {
                         ) : null}
 
                         <div>
-                            <table className="table">
+                            <table className="table purchase-details">
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>

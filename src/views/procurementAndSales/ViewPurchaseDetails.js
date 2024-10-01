@@ -21,19 +21,22 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage }) => {
 
 
     useEffect(() => {
-        setLoading(true)
-        findPurchaseByIdAndPO(id, poNumber)
-            .then((data) => {
-                if((getCurrentUserInfo().id === data.addedBy.id) || userHasRole("ROLE_PURCHASE_GET")){
-                    data && setPurchase(data)
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-            })
-            .finally(() => {
-                setLoading(false)
-            })
+        setLoading(false)
+        if (id && poNumber) {
+            setLoading(true)
+            findPurchaseByIdAndPO(id, poNumber)
+                .then((data) => {
+                    if ((getCurrentUserInfo().id === data.addedBy.id) || userHasRole("ROLE_PURCHASE_GET")) {
+                        data && setPurchase(data)
+                    }
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+                .finally(() => {
+                    setLoading(false)
+                })
+        }
     }, [id, poNumber])
 
 
@@ -117,7 +120,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage }) => {
                                                 <td>{detail.id}</td>
                                                 <td>
                                                     {detail.product.image ? (
-                                                        <img src={BASE_URL+ detail.product.image} alt={detail.product.name} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%", display:"block", margin:"0 auto" }}/>
+                                                        <img src={BASE_URL + detail.product.image} alt={detail.product.name} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%", display: "block", margin: "0 auto" }} />
                                                     ) : (
                                                         <span></span>
                                                     )}
