@@ -111,6 +111,7 @@ const UpdatePurchase = () => {
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
                 formData.append(`purchaseDetails[${index}].id`, row.id);
+                formData.append(`purchaseDetails[${index}].image`, row.dbImage);
                 formData.append(`purchaseDetails[${index}].product.name`, row.productName);
                 formData.append(`purchaseDetails[${index}].product.size`, row.size);
                 formData.append(`purchaseDetails[${index}].product.category.name`, row.category);
