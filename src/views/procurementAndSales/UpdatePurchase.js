@@ -169,7 +169,7 @@ const UpdatePurchase = () => {
                     return;
                 }
 
-                if (data && ((data.purchaseStatus === "OPEN" || data.purchaseStatus === "REJECTED_MODIFIED") && (getCurrentUserInfo().id === data.addedBy.id || userHasRole("ROLE_PURCHASE_UPDATE")))) {
+                if (data && ((data.purchaseStatus === "OPEN" || data.purchaseStatus === "REJECTED") && (getCurrentUserInfo().id === data.addedBy.id || userHasRole("ROLE_PURCHASE_UPDATE")))) {
                     setPurchase(data);
 
                     let storeOption = {
@@ -494,8 +494,9 @@ const UpdatePurchase = () => {
                                 onBlur={formik.handleBlur}
                             >
                                 <option value="" label=" -- Select status --" />
-                                <option value="OPEN" label="Open" />
-                                <option value="SUBMITTED" label="Submitted" />
+                                {formik.values.purchaseStatus === "OPEN" && <option value="OPEN" label="Open" />}
+                                {formik.values.purchaseStatus === "REJECTED" && <option value="REJECTED" label="Rejected" />}
+                                <option value="SUBMITTED" label="Submit" />
                             </select>
                             {formik.touched.purchaseStatus && formik.errors.purchaseStatus && (
                                 <div className="text-danger mt-1">

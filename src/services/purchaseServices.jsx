@@ -9,6 +9,12 @@ export const updatePurchase = async (id, poNumber, values) => {
     return await axiosRequest.put(`/purchases/${id}/${poNumber}`, values).then((resp) => resp.data)
 }
 
+
+export const updatePurchaseStatus = async (requestBody) => {
+    return await axiosRequest.put(`/purchases/update-purchase-status`, requestBody).then((resp) => resp.data)
+}
+
+
 export const searchPurchase = async (storeId, supplierId, poNumber, status, fromDate, toDate, page, size) => {
     return await axiosRequest.get(`/purchases/search`, {
         params: {

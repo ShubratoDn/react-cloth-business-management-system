@@ -18,7 +18,7 @@ const Page401 = () => {
         <CRow className="justify-content-center">
           <CCol md={6}>
             <div className="clearfix">
-              <h1 className="float-start display-3 me-4">401</h1>
+              <h1 className="float-start display-3 me-4 text-danger">401</h1>
               <h4 className="pt-3">Oops! You{"'"}re not permitted.</h4>
               <p className="text-body-secondary float-start">
                 The page you are looking for is needed permissions.

@@ -361,10 +361,14 @@ const PurchaseHistory = () => {
                                                 </button>
 
                                                 {
-                                                    isPOEditabel && 
+                                                    isPOEditabel(details) && 
                                                     <Link to={`/procurement/edit-purchase-details/${details.id}/${details.poNumber}`} className="btn btn-success btn-sm">Edit </Link>
                                                 }
-
+                                                
+                                                {
+                                                    (details.purchaseStatus !== "OPEN" && details.purchaseStatus !== "REJECTED") &&<Link to={`/procurement/update-purchase-status/${details.id}/${details.poNumber}`} className="btn btn-success btn-sm">Update Status </Link>
+                                                }
+                                                
                                             </td>
                                         </tr>
                                     ))

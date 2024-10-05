@@ -16,6 +16,7 @@ import CreatePurchase from 'views/procurementAndSales/CreatePurchase'
 import PurchaseHistory from 'views/procurementAndSales/PurchaseHistory'
 import ViewPurchaseDetails from 'views/procurementAndSales/ViewPurchaseDetails'
 import UpdatePurchase from 'views/procurementAndSales/UpdatePurchase'
+import UpdatePurchaseStatus from 'views/procurementAndSales/UpdatePurchaseStatus'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -121,6 +122,7 @@ const routes = [
       { path: '/procurement/purchase-history', name: "Purchase History", element: PurchaseHistory},
       { path: '/procurement/view-purchase-details/:id/:poNumber', name: "View purchase details", element: ViewPurchaseDetails},
       { path: '/procurement/edit-purchase-details/:id/:poNumber', name: "Edit purchase details", element: UpdatePurchase},
+      { path: '/procurement/update-purchase-status/:id/:poNumber', name: "Update purchase status", element: UpdatePurchaseStatus},
       // PROCUREMENT & SALES ENDS
 
 
