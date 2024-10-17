@@ -264,6 +264,7 @@ const PurchaseHistory = () => {
                                 <option value=""> -- Select Status --</option>
                                 <option value="OPEN">OPEN</option>
                                 <option value="SUBMITTED">SUBMITTED</option>
+                                <option value="APPROVED">APPROVED</option>
                                 <option value="REJECTED">REJECTED</option>
                                 <option value="REJECTED_MODIFIED">REJECTED_MODIFIED</option>
                                 <option value="CLOSED">CLOSED</option>

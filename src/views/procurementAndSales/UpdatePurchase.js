@@ -23,6 +23,7 @@ import { cilCamera } from '@coreui/icons';
 import { useParams } from 'react-router-dom';
 import Page404 from 'views/pages/page404/Page404';
 import ViewPurchaseDetails from './ViewPurchaseDetails';
+import { formatDate } from 'services/utils';
 
 const UpdatePurchase = () => {
     const [isLoading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ const UpdatePurchase = () => {
     const [isUpdatedPurchase, setUpdatedPurchase] = useState(false);
     const [storeOptions, setStoreOptions] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
-    const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ id:'', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
+    const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
     const [grandTotal, setGrandTotal] = useState(0); // Grand total state
     const [productSuggestions, setProductSuggestions] = useState({});
 
@@ -85,8 +86,8 @@ const UpdatePurchase = () => {
             purchaseDate: new Date().toISOString().split('T')[0], // Set initial value to today's date
             purchaseStatus: '',
             remark: '',
-            
-            purchaseDetails: [{ id: '',  productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
+
+            purchaseDetails: [{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
         },
         validationSchema: Yup.object({
             store: Yup.object().nullable().required('Store is required'),
@@ -122,7 +123,7 @@ const UpdatePurchase = () => {
             });
 
             updatePurchase(id, poNumber, formData)
-            
+
                 .then((response) => {
                     toast.success("Purchase (" + response.poNumber + ") has been updated successfully.", {
                         position: 'bottom-center',
@@ -164,7 +165,7 @@ const UpdatePurchase = () => {
         findPurchaseByIdAndPO(id, poNumber)
             .then((data) => {
                 // console.log(data)
-                if(!data){
+                if (!data) {
                     setPOnotFound(true);
                     return;
                 }
@@ -195,21 +196,21 @@ const UpdatePurchase = () => {
 
                     // Extract and Transform purchaseDetails from the JSON
                     const dbPurchaseDetails = data.purchaseDetails.map((row, index) => ({
-                        id : row.id,
+                        id: row.id,
                         productName: row.product.name || '',
                         size: row.product.size || '',
                         category: row.product.category.name || '',
                         price: row.price || '',
                         quantity: row.quantity || '',
                         total: (row.price * row.quantity) || 0,
-                        dbImage: row.image ? row.image : ( row.product.image || ''),
+                        dbImage: row.image ? row.image : (row.product.image || ''),
                         newImage: null,
                     }));
                     // Set the transformed purchaseDetails into the Formik field value
                     formik.setFieldValue('purchaseDetails', dbPurchaseDetails);
                     calculateGrandTotal(dbPurchaseDetails);
 
-                }else{
+                } else {
                     setUnauthorizedAccess(true)
                     toast.error("Purchase Order is not editable", {
                         position: "bottom-center",
@@ -227,7 +228,7 @@ const UpdatePurchase = () => {
 
 
     const handleAddRow = () => {
-        const newRows = [...formik.values.purchaseDetails, {id:'', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
+        const newRows = [...formik.values.purchaseDetails, { id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
         formik.setFieldValue('purchaseDetails', newRows);
         calculateGrandTotal(newRows); // Recalculate grand total
     };
@@ -375,12 +376,12 @@ const UpdatePurchase = () => {
 
 
 
-    if(poNotFound){
+    if (poNotFound) {
         return <Page404></Page404>
     }
 
 
-    if(isUpdatedPurchase || unauthorizedAccess){
+    if (isUpdatedPurchase || unauthorizedAccess) {
         return (<ViewPurchaseDetails purchaseInfoFromViewPage={purchase}></ViewPurchaseDetails>)
     }
 
@@ -514,6 +515,14 @@ const UpdatePurchase = () => {
                             </div>
 
                         </div>
+
+                        {purchase && purchase.purchaseStatus === "REJECTED" &&
+                            <div className="form-group col-md-6 mb-3" style={{backgroundColor:"#fe08082b"}}>                                
+                                <b>Rejected By: </b>{purchase.rejectedBy.name} <br></br>
+                                <b>Rejected Date:</b> {formatDate(purchase.rejectedDate)} <br></br>
+                                <b>Reason : </b>{purchase.rejectedNote}
+                            </div>
+                        }
 
 
                         {/* Remark Field */}

@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getCurrentUserInfo, userHasRole } from 'services/auth';
 import { findPurchaseByIdAndPO, updatePurchaseStatus } from 'services/purchaseServices';
+import { formatDate } from 'services/utils';
 import Page404 from 'views/pages/page404/Page404';
 
 const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequestForUpdateStatus }) => {
@@ -67,7 +68,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
 
         updatePurchaseStatus(requestBody)
             .then((data) => {
-                toast.success("Purchase ("+poNumber+") status updated !!", {
+                toast.success("Purchase (" + poNumber + ") status updated !!", {
                     position: "bottom-center",
                     theme: "dark",
                 })
@@ -134,7 +135,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                     <tr>
                                         <th>Purchase Date</th>
                                         <td>
-                                            {purchase.purchaseDate}
+                                            {formatDate(purchase.purchaseDate)}
                                         </td>
                                     </tr>
                                     <tr>
@@ -149,6 +150,32 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                             {purchase.purchaseStatus}
                                         </td>
                                     </tr>
+                                    {purchase.purchaseStatus === "REJECTED" &&
+
+                                        <>
+                                            <tr>
+                                                <th>Rejected By</th>
+                                                <td>
+                                                    {purchase.rejectedBy.name}
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <th>Rejected Date</th>
+                                                <td>
+                                                    {formatDate(purchase.rejectedDate)}
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <th>Reason</th>
+                                                <td>
+                                                    {purchase.rejectedNote}
+                                                </td>
+                                            </tr>
+                                        </>
+                                    }
+
                                 </tbody>
                             </table>
 
@@ -201,14 +228,14 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                         {isRequestForUpdateStatus &&
                             <CCardFooter style={{ textAlign: 'right' }}>
                                 {purchase.purchaseStatus === "CLOSED" && <div className='text-info text-center'>The purchase order has been closed! No action available to perform.</div>}
-                                {(purchase.purchaseStatus === "SUBMITTED" || purchase.purchaseStatus === "REJECTED") && <button className='btn btn-success btn-sm me-2' onClick={() => updateStatus("APPROVED")}>Approve</button>}
+                                {(purchase.purchaseStatus === "SUBMITTED" || purchase.purchaseStatus === "REJECTED" || purchase.purchaseStatus === "REJECTED_MODIFIED") && <button className='btn btn-success btn-sm me-2' onClick={() => updateStatus("APPROVED")}>Approve</button>}
                                 {/* {(purchase.purchaseStatus === "SUBMITTED") && <button className='btn btn-danger btn-sm me-2' onClick={() => updateStatus("REJECTED")}>Reject</button>} */}
                                 {purchase.purchaseStatus === "SUBMITTED" && (
                                     <button className='btn btn-danger btn-sm me-2' onClick={handleRejectClick}>
                                         Reject
                                     </button>
                                 )}
-                                {(purchase.purchaseStatus === "APPROVED" || purchase.purchaseStatus === "REJECTED") && <button onClick={() => updateStatus("CLOSED")} className='btn btn-warning btn-sm me-2'>Close</button>}
+                                {(purchase.purchaseStatus === "APPROVED" || purchase.purchaseStatus === "REJECTED" || purchase.purchaseStatus === "REJECTED_MODIFIED") && <button onClick={() => updateStatus("CLOSED")} className='btn btn-warning btn-sm me-2'>Close</button>}
                             </CCardFooter>
                         }
                     </CCard>
@@ -241,7 +268,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                 </CModalFooter>
             </CModal>
 
-           
+
         </>
     );
 }

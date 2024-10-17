@@ -23,3 +23,32 @@ export function jsonToFormData(json, formData = new FormData(), parentKey = '') 
 
     return formData;
 }
+
+
+export function formatDate(dateString) {
+    // Create a new Date object from the input string
+    const date = new Date(dateString);
+    
+    // Get day, month (in abbreviated form), and year
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.getFullYear().toString().slice(-2); // Last 2 digits of the year
+
+    // If input contains time, format both date and time
+    if (dateString.includes('T')) {
+        // Get hours and minutes in 12-hour format
+        let hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        // Convert 24-hour format to 12-hour format
+        hours = hours % 12;
+        hours = hours ? hours : 12; // The hour '0' should be '12'
+        
+        // Return the full date and time format
+        return `${day}-${month}-${year}, ${hours}:${minutes} ${ampm}`;
+    } else {
+        // Return only the date if time is not included
+        return `${day}-${month}-${year}`;
+    }
+}
