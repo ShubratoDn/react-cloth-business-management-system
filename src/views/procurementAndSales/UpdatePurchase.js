@@ -36,6 +36,12 @@ const UpdatePurchase = () => {
     const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
     const [grandTotal, setGrandTotal] = useState(0); // Grand total state
     const [productSuggestions, setProductSuggestions] = useState({});
+    const [productPricesTotal, setProductPricesTotal] = useState(0);
+
+    const [discount, setDiscount] = useState(0); // State to handle discount amount
+    const [discountRemark, setDiscountRemark] = useState(""); // State to handle discount amount
+    const [charge, setCharge] = useState(0);     // State to handle charge amount
+    const [chargeRemark, setChargeRemark] = useState("");     // State to handle charge amount
 
 
     const [purchase, setPurchase] = useState(null);
@@ -109,6 +115,12 @@ const UpdatePurchase = () => {
             formData.append("remark", values.remark);
             formData.append("purchaseStatus", values.purchaseStatus)
 
+            formData.append("discountAmount", discount);
+            formData.append("discountRemark", discountRemark);
+
+            formData.append("chargeAmount", charge);
+            formData.append("chargeRemark", chargeRemark);
+
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
                 formData.append(`purchaseDetails[${index}].id`, row.id);
@@ -173,6 +185,11 @@ const UpdatePurchase = () => {
                 if (data && ((data.purchaseStatus === "OPEN" || data.purchaseStatus === "REJECTED") && (getCurrentUserInfo().id === data.addedBy.id || userHasRole("ROLE_PURCHASE_UPDATE")))) {
                     setPurchase(data);
 
+                    setDiscount(data.discountAmount);
+                    setDiscountRemark(data.discountRemark);
+                    setCharge(data.chargeAmount);
+                    setChargeRemark(data.chargeRemark);
+
                     let storeOption = {
                         id: data.store.id,
                         value: data.store.id,
@@ -208,7 +225,7 @@ const UpdatePurchase = () => {
                     }));
                     // Set the transformed purchaseDetails into the Formik field value
                     formik.setFieldValue('purchaseDetails', dbPurchaseDetails);
-                    calculateGrandTotal(dbPurchaseDetails);
+                    calculateProductPricesTotal(dbPurchaseDetails);
 
                 } else {
                     setUnauthorizedAccess(true)
@@ -230,13 +247,13 @@ const UpdatePurchase = () => {
     const handleAddRow = () => {
         const newRows = [...formik.values.purchaseDetails, { id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
         formik.setFieldValue('purchaseDetails', newRows);
-        calculateGrandTotal(newRows); // Recalculate grand total
+        calculateProductPricesTotal(newRows); // Recalculate grand total
     };
 
     const handleRemoveRow = (index) => {
         const newRows = formik.values.purchaseDetails.filter((_, rowIndex) => rowIndex !== index);
         formik.setFieldValue('purchaseDetails', newRows);
-        calculateGrandTotal(newRows); // Recalculate grand total
+        calculateProductPricesTotal(newRows); // Recalculate grand total
     };
 
 
@@ -253,20 +270,30 @@ const UpdatePurchase = () => {
         }
 
         formik.setFieldValue('purchaseDetails', newRows);
-        calculateGrandTotal(newRows);
+        calculateProductPricesTotal(newRows);
     };
 
 
 
-    const calculateGrandTotal = (purchaseDetailRows) => {
+    const calculateProductPricesTotal = (purchaseDetailRows) => {
         const total = purchaseDetailRows.reduce((acc, row) => {
             if (row.productName) {
                 return acc + row.total;
             }
             return acc;
         }, 0);
-        setGrandTotal(total);
+        setProductPricesTotal(total);
     };
+
+    useEffect(() => {
+        let total = productPricesTotal;
+        total -= parseFloat(discount || 0); // Subtract discount
+        total += parseFloat(charge || 0);   // Add charge
+
+        setGrandTotal(total);
+
+    }, [discount, charge, productPricesTotal])
+
 
 
 
@@ -693,9 +720,52 @@ const UpdatePurchase = () => {
                             </CButton>
                         </div>
 
+
+                        {/* Discount and Charge Fields */}
+                        <div className="form-group row mt-3">
+                            <label className="offset-5 col-md-2 col-form-label">Discount</label>
+                            <div className="col-md-5 d-flex">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={discountRemark}
+                                    onChange={(e) => setDiscountRemark(e.target.value)}
+                                    placeholder="Discount note"
+                                />
+                                <input
+                                    type="number"
+                                    className="form-control w-50"
+                                    value={discount}
+                                    onChange={(e) => setDiscount(e.target.value)}
+                                    placeholder="Enter discount amount"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group row mt-3">
+                            <label className="offset-5 col-md-2 col-form-label">Charge</label>
+                            <div className="col-md-5 d-flex">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={chargeRemark}
+                                    onChange={(e) => setChargeRemark(e.target.value)}
+                                    placeholder="Charge note"
+                                />
+                                <input
+                                    type="number"
+                                    className="form-control w-50"
+                                    value={charge}
+                                    onChange={(e) => setCharge(e.target.value)}
+                                    placeholder="Enter charge amount"
+                                />
+                            </div>
+                        </div>
+
+
                         {/* Grand Total Section */}
                         <div>
-                            <div className='text-right' style={{ width: "fit-content", margin: "auto 0 auto auto", fontSize: "20px" }}>Grand Total: <span style={{ fontWeight: "bolder" }}>{grandTotal} TK</span></div>
+                            <div className='text-right' style={{ width: "fit-content", margin: "auto 0 auto auto", fontSize: "20px", marginTop: "40px" }}>Grand Total: <span style={{ fontWeight: "bolder" }}>{grandTotal} TK</span></div>
                         </div>
 
                         <div className="form-group col-md-12 mt-3">

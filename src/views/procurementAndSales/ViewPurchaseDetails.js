@@ -223,6 +223,18 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                     )}
                                 </tbody>
                             </table>
+
+                            <table>
+                                <tr>
+                                    <th>Discount {purchase.discountRemark && "("+purchase.discountRemark+")"}:</th>
+                                    <td>{purchase.discountAmount} Tk</td>
+                                </tr>
+                                <tr>
+                                    <th>Charge {purchase.chargeRemark && "("+purchase.chargeRemark+")"}:</th>
+                                    <td>{purchase.chargeAmount} Tk</td>
+                                </tr>
+                            </table>
+
                         </CCardBody>
 
                         {isRequestForUpdateStatus &&
