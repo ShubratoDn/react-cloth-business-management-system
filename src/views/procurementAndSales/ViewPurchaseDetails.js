@@ -242,7 +242,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                 {purchase.purchaseStatus === "CLOSED" && <div className='text-info text-center'>The purchase order has been closed! No action available to perform.</div>}
                                 {(purchase.purchaseStatus === "SUBMITTED" || purchase.purchaseStatus === "REJECTED" || purchase.purchaseStatus === "REJECTED_MODIFIED") && <button className='btn btn-success btn-sm me-2' onClick={() => updateStatus("APPROVED")}>Approve</button>}
                                 {/* {(purchase.purchaseStatus === "SUBMITTED") && <button className='btn btn-danger btn-sm me-2' onClick={() => updateStatus("REJECTED")}>Reject</button>} */}
-                                {purchase.purchaseStatus === "SUBMITTED" && (
+                                {purchase.purchaseStatus === "SUBMITTED" || purchase.purchaseStatus === "REJECTED_MODIFIED" && (
                                     <button className='btn btn-danger btn-sm me-2' onClick={handleRejectClick}>
                                         Reject
                                     </button>
