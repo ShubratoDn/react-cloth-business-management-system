@@ -17,6 +17,8 @@ import PurchaseHistory from 'views/procurementAndSales/PurchaseHistory'
 import ViewPurchaseDetails from 'views/procurementAndSales/ViewPurchaseDetails'
 import UpdatePurchase from 'views/procurementAndSales/UpdatePurchase'
 import UpdatePurchaseStatus from 'views/procurementAndSales/UpdatePurchaseStatus'
+import FindStock from 'views/stockManagement/FindStock'
+import StockOverview from 'views/stockManagement/StockOverview'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -103,6 +105,8 @@ const routes = [
     { path: '/product', exact: true, name: "Products", element: FindProduct},
     { path: '/product/all', name: 'All Products', element: FindProduct},
     { path: '/product/add', name: 'Add Product', element: CreateProduct, roleRequired: "ROLE_PRODUCT_CREATE" },
+    { path: '/stock/overview', name: 'Stock Overview', element: StockOverview },
+    { path: '/stock/find', name: 'Find Stock', element: FindStock, roleRequired: "ROLE_STOCK_GET" },
     //product management ends
 
 

@@ -11,6 +11,7 @@ import {
     cilCursor,
     cilDescription,
     cilDrop,
+    cilHouse,
     cilLan,
     cilLockLocked,
     cilNotes,
@@ -18,6 +19,7 @@ import {
     cilPuzzle,
     cilSpeedometer,
     cilStar,
+    cilStorage,
     cilUser,
     cilUserPlus,
 } from '@coreui/icons'
@@ -163,6 +165,25 @@ const _nav = [
                 to: '/product/all',
                 // roleRequired: "ROLE_PRODUCT_GET"
             },            
+        ]
+    },
+    {
+        component: CNavGroup,
+        name: 'Stock',
+        to: '/stock/all',
+        icon: <CIcon icon={cilStorage} customClassName="nav-icon" />,
+        items: [
+            {
+                component: CNavItem,
+                name: 'Stock Overview',
+                to: '/stock/overview',
+            },
+            {
+                component: CNavItem,
+                name: 'Find Stock',
+                to: '/stock/find',
+                roleRequired: "ROLE_STOCK_GET"
+            }
         ]
     },
     //PRODUCT MANAGEMENT
