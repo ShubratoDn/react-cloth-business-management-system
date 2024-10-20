@@ -8,8 +8,13 @@ export const createProduct = async (values) => {
         .then(resp => resp.data)
 }
 
-export const getAllProductCategories = async (value) => {
+export const searchAllProductCategories = async (value) => {
     return await axiosRequest.get("/product-categories/search?query="+value)
+        .then(resp => resp.data)
+}
+
+export const getAllProductList = async () => {
+    return await axiosRequest.get("/products")
         .then(resp => resp.data)
 }
 

@@ -1,9 +1,11 @@
-import { CCard, CCardBody, CCardHeader } from '@coreui/react';
+import { CCard, CCardBody, CCardHeader, CFormLabel } from '@coreui/react';
 import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import Select from 'react-select';
 import { toast } from 'react-toastify';
-import { searchProducts } from 'services/productServices';
+import { getLoggedInUsersAssignedStore } from 'services/auth';
+import { getAllProductList, searchProducts } from 'services/productServices';
 import { stockOverview } from 'services/stockServices';
 
 const StockOverview = () => {
@@ -14,23 +16,49 @@ const StockOverview = () => {
     const [data, setData] = useState(null);
     const [page, setPage] = useState(0);
 
-    const handleSearch = (event) => {
-        setQuery(event.target.value);
-        setPage(0); // Reset to page 0 when a new search is performed
-    };
+    const [storeOptions, setStoreOptions] = useState([]);
+    const [store, setStore] = useState("");
+
+    const [productOptions, setProductOptions] = useState([]);
+    const [product, setProduct] = useState("");
+
+
+    useEffect(() => {
+        const options = getLoggedInUsersAssignedStore().map((store) => ({
+            id: store.id,
+            value: store.id,
+            label: store.storeName
+                ? `${store.storeName} (${store.storeCode})`
+                : store.storeCode,
+        }));
+        setStoreOptions(options);
+
+        getAllProductList().
+            then((resp)=>{
+                const productOptions = resp.map((product) => ({
+                    id: product.id,
+                    value: product.id,
+                    label: `${product.name} - ${product.size} (${product.category.name})`
+                }));
+                setProductOptions(productOptions);
+            })
+            .catch((err)=>{
+                console.error(err)
+            })
+
+    }, []);
+
 
     const getStockOverviewData = () => {
         setLoading(true);
-        stockOverview(query, query, page, 10)
+        stockOverview((store ? store.id : ""), (product ? product.id : ""), query, page, 10)
             .then((response) => {
-                console.log(response)
-                
-                // setData(response);
-                // if (page === 0) {
-                //     setContent(response.content);
-                // } else {
-                //     setContent((prevContent) => [...prevContent, ...response.content]);
-                // }
+                setData(response);
+                if (page === 0) {
+                    setContent(response.content);
+                } else {
+                    setContent((prevContent) => [...prevContent, ...response.content]);
+                }
             })
             .catch((err) => {
                 if (err.code === 'ERR_NETWORK') {
@@ -58,7 +86,8 @@ const StockOverview = () => {
 
     useEffect(() => {
         getStockOverviewData();
-    }, [page, query]); // Trigger the effect on page or query change
+        setPage(0);
+    }, [page, query, store, product]); // Trigger the effect on page or query change
 
     const requestForData = () => {
         setPage((prevPage) => prevPage + 1);
@@ -73,17 +102,36 @@ const StockOverview = () => {
                 <div className="form-group mb-3">
                     <h3 className="mb-2 text-muted">Stock Overview</h3>
                     <div className='d-flex'>
-                        <input
-                            type="text"
-                            name="query"
-                            className='form-control me-3'
-                            placeholder="Type product name for stock info"
-                            value={query}
-                            onChange={handleSearch}
-                            onKeyUp={handleSearch} // Debounced search could be more efficient here
-                        />
-                        <button type="button" className='btn btn-success'>Search</button>
+                        <div className="form-group col-sm-6 mb-3 pe-2">
+                            <CFormLabel htmlFor="store">Store</CFormLabel>
+                            <Select
+                                id="store"
+                                name="store"
+                                options={storeOptions}
+                                value={store}
+                                onChange={(option) => {
+                                    setStore(option)
+                                }}
+                                classNamePrefix="react-select"
+                                isClearable
+                            />
+                        </div>
+
+                        <div className="form-group col-sm-6 mb-3 ps-2">
+                            <CFormLabel htmlFor="store">Product</CFormLabel>
+                            <Select
+                                id="product"
+                                options={productOptions}
+                                value={product}
+                                onChange={(option) => {
+                                    setProduct(option)
+                                }}
+                                classNamePrefix="react-select"
+                                isClearable 
+                            />
+                        </div>
                     </div>
+                    <button type="button" className='btn btn-success'>Search</button>
                 </div>
             </form>
 
@@ -113,25 +161,29 @@ const StockOverview = () => {
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th>Image</th>
                                     <th scope="col">Product Name</th>
-                                    <th scope="col">Size</th>
                                     <th scope="col">Category</th>
-                                    <th scope="col">Remark</th>                                  
+                                    <th scope="col">Size</th>
+                                    <th scope="col">Total Quantity</th>
+                                    <th scope="col">Store info</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {content.length > 0 && (
-                                    content.map((product) => (
-                                        <tr key={product.id}>
-                                            <td>{product.id}</td>
-                                            <td>{product.image && <img src={BASE_URL + product.image} alt="Image" style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%", display:"block", margin:"0 auto" }} />}</td>
-                                            <td>{product.name}</td>
-                                            <td>{product.size}</td>
-                                            <td>{product.category.name}</td>
-                                            <td>{product.remark}</td>                                            
-                                        </tr>
-                                    ))
+                                    content.map((item, index) => {
+                                        return (
+                                            <tr key={index}>
+                                                <td>{item.product.id}</td>
+                                                <td>{item.product.name}</td>
+                                                <td>{item.product.category.name}</td>
+                                                <td>{item.product.size}</td>
+                                                <td><b>{item.totalQuantity}</b></td>
+                                                <td>
+                                                    {item.store.storeName} ({item.store.storeCode})
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
                                 )}
                             </tbody>
                         </table>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CCard, CCardBody, CCardHeader } from '@coreui/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { createProduct, getAllProductCategories } from '../../services/productServices';
+import { createProduct, searchAllProductCategories } from '../../services/productServices';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -131,7 +131,7 @@ const CreateProduct = () => {
             formik.handleChange(event);
 
             if (name === 'productCategory' && value.length >= 1) { // Fetch categorySuggestions if 2 or more characters
-                getAllProductCategories(value)
+                searchAllProductCategories(value)
                     .then(response => {
                         setCategorySuggestions(response);
                     })
