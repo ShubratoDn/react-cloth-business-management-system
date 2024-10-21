@@ -115,10 +115,10 @@ const UpdatePurchase = () => {
             formData.append("remark", values.remark);
             formData.append("purchaseStatus", values.purchaseStatus)
 
-            formData.append("discountAmount", discount);
+            formData.append("discountAmount", parseFloat(discount || 0.0));
             formData.append("discountRemark", discountRemark);
 
-            formData.append("chargeAmount", charge);
+            formData.append("chargeAmount", parseFloat(charge || 0.0));
             formData.append("chargeRemark", chargeRemark);
 
             // Handle Purchase Details
