@@ -1,16 +1,19 @@
 import { Button } from '@coreui/coreui';
+import { cilPrint } from '@coreui/icons';
+import CIcon from '@coreui/icons-react';
 import { CButton, CCard, CCardBody, CCardFooter, CCardHeader, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react';
 import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getCurrentUserInfo, userHasRole } from 'services/auth';
-import { findPurchaseByIdAndPO, updatePurchaseStatus } from 'services/purchaseServices';
+import { downloadPurchaseReport, findPurchaseByIdAndPO, generatePOPdf, updatePurchaseStatus } from 'services/purchaseServices';
 import { formatDate } from 'services/utils';
 import Page404 from 'views/pages/page404/Page404';
 
 const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequestForUpdateStatus }) => {
     const [isLoading, setLoading] = useState(true);
+    const [isDownloading, setDownloading] = useState(false);
     const [message, setMessage] = useState({});
 
 
@@ -97,6 +100,21 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
     };
 
 
+
+    const handleDownload = async () => {
+        setDownloading(true);
+        try {
+            downloadPurchaseReport(purchase.id, purchase.poNumber);
+        } catch (error) {
+            alert('Could not download the report. Please try again.');
+        } finally {
+            setTimeout(() => {
+                setDownloading(false);
+            }, 1000)
+        }
+    };
+
+
     return (
         <>
             {isLoading ? <div>Please Wait</div>
@@ -108,7 +126,13 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                         <CCardHeader className='d-flex justify-content-between'>
                             {isRequestForUpdateStatus ? <h4>Update Purchase Status</h4>
                                 : <h4>Purchase Details</h4>}
-                            {purchaseInfoFromViewPage && <Link target='_blank' to={`/procurement/view-purchase-details/${purchase.id}/${purchase.poNumber}`} className='btn btn-info'>View in separate page</Link>}
+                            <div>
+                                <button className='btn btn-success' onClick={handleDownload} disabled={isDownloading}>
+                                    <CIcon icon={cilPrint}></CIcon> &nbsp;
+                                    {isDownloading ? 'Downloading...' : 'PDF'}
+                                </button> &nbsp;
+                                {purchaseInfoFromViewPage && <Link target='_blank' to={`/procurement/view-purchase-details/${purchase.id}/${purchase.poNumber}`} className='btn btn-info'>View in separate page</Link>}
+                            </div>
                         </CCardHeader>
                         <CCardBody className='purchase-details-card-body'>
                             <table className="purchase-details-view-table table table-bordered table-striped">
@@ -225,14 +249,16 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                             </table>
 
                             <table>
-                                <tr>
-                                    <th>Discount {purchase.discountRemark && "("+purchase.discountRemark+")"}:</th>
-                                    <td>{purchase.discountAmount} Tk</td>
-                                </tr>
-                                <tr>
-                                    <th>Charge {purchase.chargeRemark && "("+purchase.chargeRemark+")"}:</th>
-                                    <td>{purchase.chargeAmount} Tk</td>
-                                </tr>
+                                <tbody>
+                                    <tr>
+                                        <th>Discount {purchase.discountRemark && "(" + purchase.discountRemark + ")"}:</th>
+                                        <td>{purchase.discountAmount} Tk</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Charge {purchase.chargeRemark && "(" + purchase.chargeRemark + ")"}:</th>
+                                        <td>{purchase.chargeAmount} Tk</td>
+                                    </tr>
+                                </tbody>
                             </table>
 
                         </CCardBody>

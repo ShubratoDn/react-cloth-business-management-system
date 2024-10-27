@@ -30,6 +30,34 @@ export const searchPurchase = async (storeId, supplierId, poNumber, status, from
     }).then((resp) => resp.data)
 }
 
-export const findPurchaseByIdAndPO = async (id, po)=>{
-    return await axiosRequest.get(`/purchases/${id}/${po}`).then((resp)=>resp.data)
+export const findPurchaseByIdAndPO = async (id, po) => {
+    return await axiosRequest.get(`/purchases/${id}/${po}`).then((resp) => resp.data)
 }
+
+export const generatePOPdf = async (id, po) => {
+    return await axiosRequest.get(`/purchases/generate-pdf/${id}/${po}`).then((resp) => resp.data)
+}
+
+
+export const downloadPurchaseReport = async (id, po) => {
+    try {
+        const response = await axiosRequest.get(`/purchases/generate-pdf/${id}/${po}`, {
+            responseType: 'blob', // Important to handle binary data
+        });
+
+        // Create a link element, set it as a download, and trigger it
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${po}.pdf`); // Set the filename
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Failed to download report:', error);
+        alert('Could not download the report. Please try again.');
+    }
+};
