@@ -174,6 +174,12 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                             {purchase.purchaseStatus}
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <th>Remark</th>
+                                        <td>
+                                            {purchase.remark}
+                                        </td>
+                                    </tr>
                                     {purchase.purchaseStatus === "REJECTED" &&
 
                                         <>
