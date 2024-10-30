@@ -248,14 +248,8 @@ const _nav = [
                 component: CNavItem,
                 name: 'Purchase History',
                 to: '/procurement/purchase-history',
-                roleRequired: "ROLE_PURCHASE_CREATE"
-            },
-            {
-                component: CNavItem,
-                name: 'Invoice List',
-                to: '/invoices',
-                roleRequired: "ROLE_STAKEHOLDER_GET"
-            },                   
+                roleRequired: "ROLE_PURCHASE_SEARCH"
+            },                 
         ]
     },
 
@@ -264,26 +258,20 @@ const _nav = [
         name: 'Sales',
         to: '/sales',
         icon: <CIcon icon={cilCash} customClassName="nav-icon" />,
-        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_STAKEHOLDER_GET", "ROLE_STAKEHOLDER_UPDATE", ],
-        items: [            
-            {
-                component: CNavItem,
-                name: 'Invoice List',
-                to: '/invoices',
-                roleRequired: "ROLE_STAKEHOLDER_GET"
-            },       
+        roleRequired: ["ROLE_SALE_CREATE", "ROLE_SALE_GET", "ROLE_SALE_SEARCH", ],
+        items: [             
             {
                 component: CNavItem,
                 name: 'Sell',
                 to: '/sales/sell',
-                roleRequired: "ROLE_STAKEHOLDER_GET"
-            }, 
+                roleRequired: "ROLE_SALE_CREATE"
+            },
             {
                 component: CNavItem,
-                name: 'Voucher List',
-                to: '/vouchers',
-                roleRequired: "ROLE_STAKEHOLDER_GET"
-            },      
+                name: 'Sale History',
+                to: '/sales/sell-history',
+                roleRequired: "ROLE_SALE_SEARCH"
+            },  
         ]
     },
     // PROCUREMENT AND SALES ENDS

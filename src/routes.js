@@ -12,13 +12,15 @@ import AssignStore from 'views/storeManagement/AssignStore'
 import CreateProduct from 'views/productManagement/CreateProduct'
 import FindProduct from 'views/productManagement/FindProduct'
 import CreateStakeholder from 'views/stakeholderManagement/CreateStakeholder'
-import CreatePurchase from 'views/procurementAndSales/CreatePurchase'
-import PurchaseHistory from 'views/procurementAndSales/PurchaseHistory'
-import ViewPurchaseDetails from 'views/procurementAndSales/ViewPurchaseDetails'
-import UpdatePurchase from 'views/procurementAndSales/UpdatePurchase'
-import UpdatePurchaseStatus from 'views/procurementAndSales/UpdatePurchaseStatus'
+import CreatePurchase from 'views/procurementManagement/CreatePurchase'
+import PurchaseHistory from 'views/procurementManagement/PurchaseHistory'
+import ViewPurchaseDetails from 'views/procurementManagement/ViewPurchaseDetails'
+import UpdatePurchase from 'views/procurementManagement/UpdatePurchase'
+import UpdatePurchaseStatus from 'views/procurementManagement/UpdatePurchaseStatus'
 import FindStock from 'views/stockManagement/FindStock'
 import StockOverview from 'views/stockManagement/StockOverview'
+import CreateSale from 'views/salesManagement/CreateSale'
+import SellHistory from 'views/salesManagement/SellHistory'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -127,6 +129,9 @@ const routes = [
       { path: '/procurement/view-purchase-details/:id/:poNumber', name: "View purchase details", element: ViewPurchaseDetails},
       { path: '/procurement/edit-purchase-details/:id/:poNumber', name: "Edit purchase details", element: UpdatePurchase},
       { path: '/procurement/update-purchase-status/:id/:poNumber', name: "Update purchase status", element: UpdatePurchaseStatus},
+
+      { path: '/sales/sell', exact: true, name: "Sell", element: CreateSale},
+      { path: '/sales/sell-history', name: "Sell History", element: SellHistory},
       // PROCUREMENT & SALES ENDS
 
 
