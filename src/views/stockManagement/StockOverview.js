@@ -155,7 +155,7 @@ const StockOverview = () => {
                         next={requestForData}
                         hasMore={data ? !data.last : true}
                         loader={<div className="border-0 loading">Loading...</div>}
-                        endMessage={<div className="my-3 text-center text-muted">No more stores to load.</div>}
+                        endMessage={<div className="my-3 text-center text-muted">No more products to load.</div>}
                     >
                         <table className="table table-bordered">
                             <thead>

@@ -194,3 +194,7 @@ table.purchase-details input{
     min-width: 60vw !important;
     max-width: 80vw !important;
 }
+
+.w100px{
+    width: 200px;
+}
