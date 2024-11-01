@@ -15,10 +15,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import { addPurchase } from 'services/purchaseServices';
 import { getLoggedInUsersAssignedStore } from 'services/auth';
 import { fetchCustomersByStoreId } from 'services/stakeholderServices';
-import { searchProducts } from 'services/productServices';
-import { BASE_URL } from 'configs/axiosConfig';
-import CIcon from '@coreui/icons-react';
-import { cilCamera } from '@coreui/icons';
 import { getStocksByStore } from 'services/stockServices';
 
 const CreateSale = () => {
@@ -29,9 +25,7 @@ const CreateSale = () => {
     const [saleDetailRows, setsaleDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
     const [productPricesTotal, setProductPricesTotal] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
-    const [productSuggestions, setProductSuggestions] = useState({});
 
-    const [stock, setStock] = useState(null);
     const [stockSuggestions, setStockSuggestions] = useState([]);
 
     const [discount, setDiscount] = useState(0); // State to handle discount amount
@@ -126,7 +120,7 @@ const CreateSale = () => {
                     resetForm();
                     setsaleDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
                     setGrandTotal(0); // Reset Grand Total
-                    setProductSuggestions({})
+                    // setProductSuggestions({})
                 })
                 .catch((err) => {
                     console.error(err);
@@ -153,7 +147,7 @@ const CreateSale = () => {
 
 
     const handleAddRow = () => {
-        const newRows = [...formik.values.saleDetails, { productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
+        const newRows = [...formik.values.saleDetails, { product: '', price: '', quantity: '', total: 0, dbImage: '' }];
         formik.setFieldValue('saleDetails', newRows);
         calculateProductPricesTotal(newRows); // Recalculate grand total
     };
@@ -165,100 +159,52 @@ const CreateSale = () => {
     };
 
 
-    // const handleRowChange = (index, field, value) => {
-    //     const newRows = [...formik.values.saleDetails];
-    //     newRows[index][field] = value;
 
-    //     if (field === 'price' || field === 'quantity') {
-    //         const price = parseFloat(newRows[index].price) || 0;
-    //         const quantity = parseInt(newRows[index].quantity) || 0;
-    //         newRows[index].total = price * quantity;
+    const [stockInfo, setStockInfo] = useState([]);
+    const [productQuantities, setProductQuantities] = useState([]);
 
-
-    //         const productId = formik.values.saleDetails[index].product;
-    //         const selectedQuantity = formik.values.saleDetails[index].quantity;
-
-    //         // Calculate total and adjust stock display
-    //         if (productId && field === 'quantity') {
-    //             const stockQuantity = stockMapping[productId]?.totalQuantity || 0;
-    //             const remainingStock = stockQuantity - (selectedQuantity || 0);
-    //             setStockMapping(prevStock => ({
-    //                 ...prevStock,
-    //                 [productId]: {
-    //                     ...prevStock[productId],
-    //                     totalQuantity: remainingStock
-    //                 }
-    //             }));
-    //         }
-    //     }
-
-    //     formik.setFieldValue('saleDetails', newRows);
-    //     calculateProductPricesTotal(newRows);
-    // };
-
-    const [previousQuantities, setPreviousQuantities] = useState({}); // Track previous quantities
-
-const handleRowChange = (index, field, value) => {
-    const newRows = [...formik.values.saleDetails];
-    newRows[index][field] = value;
-
-    if (field === 'price' || field === 'quantity') {
-        const price = parseFloat(newRows[index].price) || 0;
-        const quantity = parseInt(newRows[index].quantity) || 0;
-        newRows[index].total = price * quantity;
-
-        const productId = formik.values.saleDetails[index].product;
-
-        if (productId && field === 'quantity') {
-            // Get previous and new quantity values
-            const previousQuantity = previousQuantities[productId] || 0;
-            const quantityDifference = quantity - previousQuantity;
-
-            // Adjust stock based on the quantity difference
-            const stockQuantity = stockMapping[productId]?.totalQuantity || 0;
-            const updatedStockQuantity = stockQuantity - quantityDifference;
-
-            setStockMapping(prevStock => ({
-                ...prevStock,
-                [productId]: {
-                    ...prevStock[productId],
-                    totalQuantity: updatedStockQuantity
-                }
-            }));
-
-            // Update the previousQuantities state
-            setPreviousQuantities(prev => ({
-                ...prev,
-                [productId]: quantity
-            }));
+    const handleRowChange = (index, field, value) => {
+        const newRows = [...formik.values.saleDetails];
+        newRows[index][field] = value;
+    
+        if (field === 'price' || field === 'quantity') {
+            const price = parseFloat(newRows[index].price) || 0;
+            const quantity = parseInt(newRows[index].quantity) || 0;
+            newRows[index].total = price * quantity;
+    
+            const productId = formik.values.saleDetails[index].product;
+    
+            if (productId && field === 'quantity') {
+                setProductQuantities(prevQuantities => {
+                    const updatedQuantities = prevQuantities.filter(
+                        (item) => item.productId !== productId
+                    );
+                    // Add or update the quantity only if it's greater than zero
+                    if (quantity > 0) {
+                        updatedQuantities.push({ productId, quantity });
+                    }
+                    return updatedQuantities;
+                });
+            }
         }
-    }
+    
+        formik.setFieldValue('saleDetails', newRows);
+        calculateProductPricesTotal(newRows);
+    };
 
-    formik.setFieldValue('saleDetails', newRows);
-    calculateProductPricesTotal(newRows);
-};
+    const getTotalQuantityByProductId = (productId) => {
+        return productQuantities
+            .filter(item => item.productId === productId)
+            .reduce((total, item) => total + item.quantity, 0);
+    };
 
+    const getRemainingStockByProductId = (productId) => {
+        console.log(getTotalQuantityByProductId(productId))
+        const stockEntry = stockInfo.find(stock => stock.product.id === productId);
+        const totalProductQuantity = getTotalQuantityByProductId(productId);
+        return stockEntry ? stockEntry.totalQuantity - totalProductQuantity : 0;
+    };
 
-    // const handleRowChange = (index, field, value) => {
-    //     formik.setFieldValue(`saleDetails[${index}].${field}`, value);
-
-    //     if (field === 'quantity' || field === 'product') {
-    //         const productId = formik.values.saleDetails[index].product;
-    //         const selectedQuantity = formik.values.saleDetails[index].quantity;
-
-    //         // Calculate total and adjust stock display
-    //         if (productId && field === 'quantity') {
-    //             const stockQuantity = stockMapping[productId]?.totalQuantity || 0;
-    //             const remainingStock = stockQuantity - (selectedQuantity || 0);
-    //             setStockMapping(prevStock => ({
-    //                 ...prevStock,
-    //                 [productId]: {
-    //                     ...prevStock[productId],
-    //                     totalQuantity: remainingStock
-    //                 }
-    //             }));
-    //         }
-    //     }
 
 
     const calculateProductPricesTotal = (saleDetailRows) => {
@@ -346,18 +292,10 @@ const handleRowChange = (index, field, value) => {
                     const options = data.map((item) => ({
                         id: item.product.id,
                         value: item.product.id,
-                        label: `${item.product.name} (${item.product.category.name}) ${item.product.size}`,
-                        totalQuantity: item.totalQuantity
+                        label: `${item.product.name} (${item.product.category.name}) ${item.product.size}`
                     }));
-
-                    // Create stock mapping to track stock by product ID
-                    const stockData = data.reduce((acc, item) => {
-                        acc[item.product.id] = item;
-                        return acc;
-                    }, {});
-
-                    setStockMapping(stockData);
                     setStockSuggestions(options);
+                    setStockInfo(data);
                 }
             })
             .catch((err) => {
@@ -369,51 +307,6 @@ const handleRowChange = (index, field, value) => {
         const { name, value } = e.target;
         formik.setFieldValue(name, value);
     };
-
-
-
-    const fetchProductSuggestions = async (productName, index) => {
-        if (productName.length < 1) {
-            // Fetch only if the input is at least 1 characters long
-            setProductSuggestions(prev => ({ ...prev, [index]: [] }));
-            return;
-        }
-
-        try {
-            const suggestions = await searchProducts(productName, 0, 5);
-            // setProductSuggestions(suggestions.content);
-            setProductSuggestions(prev => ({ ...prev, [index]: suggestions.content }));
-        } catch (error) {
-            console.error('Error fetching product suggestions:', error);
-            toast.error('Failed to fetch product suggestions.', {
-                position: 'bottom-center',
-                theme: 'dark',
-            });
-        }
-    };
-
-
-
-    const handleSuggestionClick = (suggestion, index) => {
-        const newRows = [...formik.values.saleDetails];
-        newRows[index] = {
-            ...newRows[index],
-            productName: suggestion.name,
-            size: suggestion.size,
-            category: suggestion.category.name,
-            dbImage: suggestion.image,
-            newImage: null
-        };
-        formik.setFieldValue('saleDetails', newRows);
-        setProductSuggestions(prev => ({ ...prev, [index]: [] })); // Clear suggestions for this row
-    };
-
-
-    const handleProductSuggestionBlur = () => {
-        setTimeout(() => {
-            setProductSuggestions({})
-        }, 500)
-    }
 
 
     return (
@@ -552,84 +445,6 @@ const handleRowChange = (index, field, value) => {
                         ) : null}
 
                         <div>
-                            {/* <table className="table purchase-details">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Product</th>
-                                        <th scope="col">Stock Qty</th>
-                                        <th scope="col">Unit Price</th>
-                                        <th scope="col">Quantity</th>
-                                        <th scope="col">Total</th>
-                                        <th scope="col">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {formik.values.saleDetails.map((row, index) => (
-                                        <tr key={index}>
-                                            <td>{index + 1}</td>
-
-                                            <td>
-                                                <Select
-                                                    options={stockSuggestions}
-                                                    value={stock}
-                                                    onChange={(option) => {
-                                                        setStock(option)
-                                                    }}
-                                                    classNamePrefix="react-select"
-                                                    className={
-                                                        formik.touched.customer && formik.errors.customer
-                                                            ? 'is-invalid'
-                                                            : 'w100px'
-                                                    }
-                                                />
-                                            </td>
-
-                                            <td>10</td>
-
-                                            
-                                            <td>
-                                                <div style={{ display: "flex", alignItems: "center" }}>
-                                                    <input
-                                                        type="number"
-                                                        className={`form-control ${formik.touched.saleDetails?.[index]?.price && formik.errors.saleDetails?.[index]?.price ? 'is-invalid' : ''}`}
-                                                        value={row.price}
-                                                        onChange={e => handleRowChange(index, 'price', parseFloat(e.target.value) || 0)}
-                                                        placeholder="Enter price"
-                                                    /> <span style={{ marginLeft: "7px" }}>TK</span>
-                                                </div>
-                                                {formik.touched.saleDetails?.[index]?.price && formik.errors.saleDetails?.[index]?.price && (
-                                                    <div className="text-danger">{formik.errors.saleDetails[index].price}</div>
-                                                )}
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="number"
-                                                    className={`form-control ${formik.touched.saleDetails?.[index]?.quantity && formik.errors.saleDetails?.[index]?.quantity ? 'is-invalid' : ''}`}
-                                                    value={row.quantity}
-                                                    onChange={e => handleRowChange(index, 'quantity', parseInt(e.target.value) || 0)}
-                                                    placeholder="Enter quantity"
-                                                />
-                                                {formik.touched.saleDetails?.[index]?.quantity && formik.errors.saleDetails?.[index]?.quantity && (
-                                                    <div className="text-danger">{formik.errors.saleDetails[index].quantity}</div>
-                                                )}
-                                            </td>
-                                            <td>{row.total}</td>
-                                            <td>
-                                                <CButton
-                                                    color="danger"
-                                                    size="sm"
-                                                    onClick={() => handleRemoveRow(index)}
-                                                >
-                                                    Remove
-                                                </CButton>
-                                            </td>
-                                        </tr>
-                                    ))}
-
-                                </tbody>
-                            </table> */}
-
                             <table className="table purchase-details">
                                 <thead>
                                     <tr>
@@ -661,7 +476,7 @@ const handleRowChange = (index, field, value) => {
                                                 )}
                                             </td>
                                             <td>
-                                                {row.product ? stockMapping[row.product]?.totalQuantity : 0}
+                                                {row.product ? getRemainingStockByProductId(row.product) : 0}
                                             </td>
                                             <td>
                                                 <input
