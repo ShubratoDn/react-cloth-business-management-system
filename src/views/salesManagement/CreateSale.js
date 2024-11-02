@@ -54,16 +54,15 @@ const CreateSale = () => {
                 .min(0, 'Price must be greater than or equal to 0'),
             quantity: Yup.number()
                 .required('Quantity is required')
-                .min(1, 'Quantity must be greater than or equal to 1')
-                .test('max-stock', 'Quantity exceeds stock', function (value) {
+                .min(1, 'Quantity must be greater than 0')
+                .test('max-stock', 'Quantity exceeds available stock', function (value) {
                     const { product } = this.parent;
-                    const stockQuantity = stockMapping[product]?.totalQuantity || 0;
-                    return value <= stockQuantity;
+                    const remainingStock = getRemainingStockByProductId(product);
+                    return value <= remainingStock;
                 })
         })
     ).min(1, 'At least one sale detail is required');
-    const [stockMapping, setStockMapping] = useState({}); // Maps product ID to stock details
-
+    
 
     const formik = useFormik({
         initialValues: {
@@ -171,21 +170,6 @@ const CreateSale = () => {
             const price = parseFloat(newRows[index].price) || 0;
             const quantity = parseInt(newRows[index].quantity) || 0;
             newRows[index].total = price * quantity;
-    
-            const productId = formik.values.saleDetails[index].product;
-    
-            if (productId && field === 'quantity') {
-                setProductQuantities(prevQuantities => {
-                    const updatedQuantities = prevQuantities.filter(
-                        (item) => item.productId !== productId
-                    );
-                    // Add or update the quantity only if it's greater than zero
-                    if (quantity > 0) {
-                        updatedQuantities.push({ productId, quantity });
-                    }
-                    return updatedQuantities;
-                });
-            }
         }
     
         formik.setFieldValue('saleDetails', newRows);
@@ -193,13 +177,12 @@ const CreateSale = () => {
     };
 
     const getTotalQuantityByProductId = (productId) => {
-        return productQuantities
-            .filter(item => item.productId === productId)
-            .reduce((total, item) => total + item.quantity, 0);
+        return formik.values.saleDetails
+            .filter(item => item.product === productId)
+            .reduce((total, item) => total + (parseInt(item.quantity) || 0), 0);
     };
-
+    
     const getRemainingStockByProductId = (productId) => {
-        console.log(getTotalQuantityByProductId(productId))
         const stockEntry = stockInfo.find(stock => stock.product.id === productId);
         const totalProductQuantity = getTotalQuantityByProductId(productId);
         return stockEntry ? stockEntry.totalQuantity - totalProductQuantity : 0;
