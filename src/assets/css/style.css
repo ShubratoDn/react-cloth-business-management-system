@@ -196,5 +196,10 @@ table.purchase-details input{
 }
 
 .w100px{
-    width: 200px;
+    width: auto !important;
+}
+
+.product-selection{
+    min-width: 300px !important;
+    width: 400px;
 }

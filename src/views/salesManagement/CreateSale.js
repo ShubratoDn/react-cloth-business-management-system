@@ -22,7 +22,7 @@ const CreateSale = () => {
     const [message, setMessage] = useState({});
     const [storeOptions, setStoreOptions] = useState([]);
     const [customerOptions, setCustomerOptions] = useState([]);
-    const [saleDetailRows, setsaleDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
+    const [saleDetailRows, setSaleDetailRows] = useState([{ productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
     const [productPricesTotal, setProductPricesTotal] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
 
@@ -57,8 +57,8 @@ const CreateSale = () => {
                 .min(1, 'Quantity must be greater than 0')
                 .test('max-stock', 'Quantity exceeds available stock', function (value) {
                     const { product } = this.parent;
-                    const remainingStock = getRemainingStockByProductId(product);
-                    return value <= remainingStock;
+                    const stockEntry = stockInfo.find(stock => stock.product.id === product);
+                    return getTotalQuantityByProductId(product) <= stockEntry.totalQuantity;
                 })
         })
     ).min(1, 'At least one sale detail is required');
@@ -80,6 +80,8 @@ const CreateSale = () => {
 
             saleDetails: saleDetailValidationSchema, // Add validation here
         }),
+        validateOnChange:true,
+        validateOnBlur:true,
         onSubmit: (values, { resetForm }) => {
             setMessage({})
             setLoading(true);
@@ -117,7 +119,7 @@ const CreateSale = () => {
                     });
                     setMessage({ success: "Sale order (" + response.poNumber + ") has been created successfully." })
                     resetForm();
-                    setsaleDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
+                    setSaleDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
                     setGrandTotal(0); // Reset Grand Total
                     // setProductSuggestions({})
                 })
@@ -160,7 +162,6 @@ const CreateSale = () => {
 
 
     const [stockInfo, setStockInfo] = useState([]);
-    const [productQuantities, setProductQuantities] = useState([]);
 
     const handleRowChange = (index, field, value) => {
         const newRows = [...formik.values.saleDetails];
@@ -173,6 +174,8 @@ const CreateSale = () => {
         }
     
         formik.setFieldValue('saleDetails', newRows);
+        // formik.setFieldValue(`saleDetails[${index}].${field}`, value);
+        formik.setFieldTouched(`saleDetails[${index}].${field}`, true); // Mark the field as touched
         calculateProductPricesTotal(newRows);
     };
 
@@ -188,6 +191,10 @@ const CreateSale = () => {
         return stockEntry ? stockEntry.totalQuantity - totalProductQuantity : 0;
     };
 
+    const getStockQtyByProduct = (productId) => {
+        const stockEntry = stockInfo.find(stock => stock.product.id === productId);
+        return stockEntry ? stockEntry.totalQuantity : 0;
+    };
 
 
     const calculateProductPricesTotal = (saleDetailRows) => {
@@ -213,7 +220,7 @@ const CreateSale = () => {
 
     useEffect(() => {
         // Ensure that the saleDetailRows state is in sync with Formik's values
-        setsaleDetailRows(formik.values.saleDetails);
+        setSaleDetailRows(formik.values.saleDetails);
     }, [formik.values.saleDetails]);
 
 
@@ -425,7 +432,7 @@ const CreateSale = () => {
 
                         {formik.errors.saleDetails && formik.touched.saleDetails ? (
                             <div style={{ color: 'red' }}>{formik.errors.saleDetails.length == 40 && formik.errors.saleDetails}</div>
-                        ) : null}
+                        ) : null }
 
                         <div>
                             <table className="table purchase-details">
@@ -434,6 +441,7 @@ const CreateSale = () => {
                                         <th scope="col">#</th>
                                         <th scope="col">Product</th>
                                         <th scope="col">Stock Qty</th>
+                                        <th scope="col">Remain Stock</th>
                                         <th scope="col">Unit Price</th>
                                         <th scope="col">Quantity</th>
                                         <th scope="col">Total</th>
@@ -453,10 +461,14 @@ const CreateSale = () => {
                                                         handleRowChange(index, 'product', option.value);
                                                     }}
                                                     classNamePrefix="react-select"
+                                                    className='product-selection'
                                                 />
                                                 {formik.touched.saleDetails?.[index]?.product && formik.errors.saleDetails?.[index]?.product && (
                                                     <div className="text-danger">{formik.errors.saleDetails[index].product}</div>
                                                 )}
+                                            </td>
+                                            <td>
+                                                {row.product ? getStockQtyByProduct(row.product) : 0}
                                             </td>
                                             <td>
                                                 {row.product ? getRemainingStockByProductId(row.product) : 0}
