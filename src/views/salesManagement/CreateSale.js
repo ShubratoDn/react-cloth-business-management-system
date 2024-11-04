@@ -51,7 +51,7 @@ const CreateSale = () => {
             product: Yup.number().required('Product is required'),
             price: Yup.number()
                 .required('Price is required')
-                .min(0, 'Price must be greater than or equal to 0'),
+                .min(1, 'Price must be greater than 0'),
             quantity: Yup.number()
                 .required('Quantity is required')
                 .min(1, 'Quantity must be greater than 0')
@@ -328,6 +328,8 @@ const CreateSale = () => {
                                 value={formik.values.store}
                                 onChange={(option) => {
                                     formik.setFieldValue('store', option);
+                                    formik.setFieldValue('saleDetails',[{ product: '', price: '', quantity: '', total: 0, dbImage: '' }],);
+                                    setStockSuggestions([]);
                                     fetchCustomers(option);
                                     fetchStockByStore(option);
                                 }}
