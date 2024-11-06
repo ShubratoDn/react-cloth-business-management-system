@@ -33,7 +33,7 @@ const UpdatePurchase = () => {
     const [isUpdatedPurchase, setUpdatedPurchase] = useState(false);
     const [storeOptions, setStoreOptions] = useState([]);
     const [supplierOptions, setSupplierOptions] = useState([]);
-    const [purchaseDetailRows, setPurchaseDetailRows] = useState([{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
+    const [transactionDetailRows, setTransactionDetailRows] = useState([{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
     const [grandTotal, setGrandTotal] = useState(0); // Grand total state
     const [productSuggestions, setProductSuggestions] = useState({});
     const [productPricesTotal, setProductPricesTotal] = useState(0);
@@ -44,8 +44,8 @@ const UpdatePurchase = () => {
     const [chargeRemark, setChargeRemark] = useState("");     // State to handle charge amount
 
 
-    const [purchase, setPurchase] = useState(null);
-    const { id, poNumber } = useParams();
+    const [transaction, setTransaction] = useState(null);
+    const { id, transactionNumber } = useParams();
 
 
 
@@ -83,25 +83,25 @@ const UpdatePurchase = () => {
                     }),
             })
         )
-        .min(1, 'At least one purchase detail is required');
+        .min(1, 'At least one transaction detail is required');
 
     const formik = useFormik({
         initialValues: {
             store: null,
-            supplier: null,
-            purchaseDate: new Date().toISOString().split('T')[0], // Set initial value to today's date
-            purchaseStatus: '',
+            partner: null,
+            transactionDate: new Date().toISOString().split('T')[0], // Set initial value to today's date
+            transactionStatus: '',
             remark: '',
 
-            purchaseDetails: [{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
+            transactionDetails: [{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
         },
         validationSchema: Yup.object({
             store: Yup.object().nullable().required('Store is required'),
-            supplier: Yup.object().nullable().required('Supplier is required'),
-            purchaseDate: Yup.date().required('Purchase date is required'),
+            partner: Yup.object().nullable().required('Supplier is required'),
+            transactionDate: Yup.date().required('Purchase date is required'),
             remark: Yup.string().max(255, 'Remark cannot exceed 255 characters'),
-            purchaseStatus: Yup.string().required('Purchase status is required'),
-            purchaseDetails: purchaseDetailValidationSchema, // Add validation here
+            transactionStatus: Yup.string().required('Purchase status is required'),
+            transactionDetails: purchaseDetailValidationSchema, // Add validation here
         }),
         onSubmit: (values, { resetForm }) => {
             setMessage({})
@@ -110,10 +110,10 @@ const UpdatePurchase = () => {
 
             let formData = new FormData();
             formData.append("store.id", values.store.id);
-            formData.append("supplier.id", values.supplier.id);
-            formData.append("purchaseDate", values.purchaseDate);
+            formData.append("partner.id", values.partner.id);
+            formData.append("transactionDate", values.transactionDate);
             formData.append("remark", values.remark);
-            formData.append("purchaseStatus", values.purchaseStatus)
+            formData.append("transactionStatus", values.transactionStatus)
 
             formData.append("discountAmount", parseFloat(discount || 0.0));
             formData.append("discountRemark", discountRemark);
@@ -122,29 +122,29 @@ const UpdatePurchase = () => {
             formData.append("chargeRemark", chargeRemark);
 
             // Handle Purchase Details
-            purchaseDetailRows.forEach((row, index) => {
-                formData.append(`purchaseDetails[${index}].id`, row.id);
-                formData.append(`purchaseDetails[${index}].image`, row.dbImage);
-                formData.append(`purchaseDetails[${index}].product.name`, row.productName);
-                formData.append(`purchaseDetails[${index}].product.size`, row.size);
-                formData.append(`purchaseDetails[${index}].product.category.name`, row.category);
-                formData.append(`purchaseDetails[${index}].price`, row.price);
-                formData.append(`purchaseDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
-                formData.append(`purchaseDetails[${index}].total`, row.total);
-                row.newImage && formData.append(`purchaseDetails[${index}].productImage`, row.newImage);
+            transactionDetailRows.forEach((row, index) => {
+                formData.append(`transactionDetails[${index}].id`, row.id);
+                formData.append(`transactionDetails[${index}].image`, row.dbImage);
+                formData.append(`transactionDetails[${index}].product.name`, row.productName);
+                formData.append(`transactionDetails[${index}].product.size`, row.size);
+                formData.append(`transactionDetails[${index}].product.category.name`, row.category);
+                formData.append(`transactionDetails[${index}].price`, row.price);
+                formData.append(`transactionDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
+                formData.append(`transactionDetails[${index}].total`, row.total);
+                row.newImage && formData.append(`transactionDetails[${index}].productImage`, row.newImage);
             });
 
-            updatePurchase(id, poNumber, formData)
+            updatePurchase(id, transactionNumber, formData)
 
                 .then((response) => {
-                    toast.success("Purchase (" + response.poNumber + ") has been updated successfully.", {
+                    toast.success("Purchase (" + response.transactionNumber + ") has been updated successfully.", {
                         position: 'bottom-center',
                         theme: 'dark',
                     });
-                    setMessage({ success: "Purchase (" + response.poNumber + ") has been updated successfully." })
+                    setMessage({ success: "Purchase (" + response.transactionNumber + ") has been updated successfully." })
                     resetForm();
                     setUpdatedPurchase(true);
-                    setPurchaseDetailRows([{ id: '', productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
+                    setTransactionDetailRows([{ id: '', productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
                     setGrandTotal(0); // Reset Grand Total
                     setProductSuggestions({})
                 })
@@ -174,16 +174,16 @@ const UpdatePurchase = () => {
     // HANDLE PARAMETER DATA    
     useEffect(() => {
         setLoading(true)
-        findPurchaseByIdAndPO(id, poNumber)
+        findPurchaseByIdAndPO(id, transactionNumber)
             .then((data) => {
-                // console.log(data)
+                console.log(data)
                 if (!data) {
                     setPOnotFound(true);
                     return;
                 }
 
-                if (data && ((data.purchaseStatus === "OPEN" || data.purchaseStatus === "REJECTED") && (getCurrentUserInfo().id === data.addedBy.id || userHasRole("ROLE_PURCHASE_UPDATE")))) {
-                    setPurchase(data);
+                if (data && ((data.transactionStatus === "OPEN" || data.transactionStatus === "REJECTED") && (getCurrentUserInfo().id === data.processedBy.id || userHasRole("ROLE_PURCHASE_UPDATE")))) {
+                    setTransaction(data);
 
                     setDiscount(data.discountAmount);
                     setDiscountRemark(data.discountRemark);
@@ -199,20 +199,20 @@ const UpdatePurchase = () => {
                     }
 
                     let supplierOption = {
-                        id: data.supplier.id,
-                        value: data.supplier.id,
-                        label: data.supplier.name + " - " + data.supplier.phone,
+                        id: data.partner.id,
+                        value: data.partner.id,
+                        label: data.partner.name + " - " + data.partner.phone,
                     }
 
                     //set store value
                     formik.setFieldValue("store", storeOption);
-                    formik.setFieldValue("supplier", supplierOption);
-                    formik.setFieldValue("purchaseDate", data.purchaseDate)
-                    formik.setFieldValue("purchaseStatus", data.purchaseStatus)
+                    formik.setFieldValue("partner", supplierOption);
+                    formik.setFieldValue("transactionDate", data.transactionDate)
+                    formik.setFieldValue("transactionStatus", data.transactionStatus)
                     formik.setFieldValue("remark", data.remark ? data.remark : '')
 
-                    // Extract and Transform purchaseDetails from the JSON
-                    const dbPurchaseDetails = data.purchaseDetails.map((row, index) => ({
+                    // Extract and Transform transactionDetails from the JSON
+                    const dbPurchaseDetails = data.transactionDetails.map((row, index) => ({
                         id: row.id,
                         productName: row.product.name || '',
                         size: row.product.size || '',
@@ -223,8 +223,8 @@ const UpdatePurchase = () => {
                         dbImage: row.image ? row.image : (row.product.image || ''),
                         newImage: null,
                     }));
-                    // Set the transformed purchaseDetails into the Formik field value
-                    formik.setFieldValue('purchaseDetails', dbPurchaseDetails);
+                    // Set the transformed transactionDetails into the Formik field value
+                    formik.setFieldValue('transactionDetails', dbPurchaseDetails);
                     calculateProductPricesTotal(dbPurchaseDetails);
 
                 } else {
@@ -241,24 +241,24 @@ const UpdatePurchase = () => {
             .finally(() => {
                 setLoading(false)
             })
-    }, [id, poNumber])
+    }, [id, transactionNumber])
 
 
     const handleAddRow = () => {
-        const newRows = [...formik.values.purchaseDetails, { id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
-        formik.setFieldValue('purchaseDetails', newRows);
+        const newRows = [...formik.values.transactionDetails, { id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
+        formik.setFieldValue('transactionDetails', newRows);
         calculateProductPricesTotal(newRows); // Recalculate grand total
     };
 
     const handleRemoveRow = (index) => {
-        const newRows = formik.values.purchaseDetails.filter((_, rowIndex) => rowIndex !== index);
-        formik.setFieldValue('purchaseDetails', newRows);
+        const newRows = formik.values.transactionDetails.filter((_, rowIndex) => rowIndex !== index);
+        formik.setFieldValue('transactionDetails', newRows);
         calculateProductPricesTotal(newRows); // Recalculate grand total
     };
 
 
     const handleRowChange = (index, field, value) => {
-        const newRows = [...formik.values.purchaseDetails];
+        const newRows = [...formik.values.transactionDetails];
         newRows[index][field] = value;
 
         if (field === 'productName') {
@@ -269,14 +269,14 @@ const UpdatePurchase = () => {
             newRows[index].total = price * quantity;
         }
 
-        formik.setFieldValue('purchaseDetails', newRows);
+        formik.setFieldValue('transactionDetails', newRows);
         calculateProductPricesTotal(newRows);
     };
 
 
 
-    const calculateProductPricesTotal = (purchaseDetailRows) => {
-        const total = purchaseDetailRows.reduce((acc, row) => {
+    const calculateProductPricesTotal = (transactionDetailRows) => {
+        const total = transactionDetailRows.reduce((acc, row) => {
             if (row.productName) {
                 return acc + row.total;
             }
@@ -298,24 +298,24 @@ const UpdatePurchase = () => {
 
 
     useEffect(() => {
-        // Ensure that the purchaseDetailRows state is in sync with Formik's values
-        setPurchaseDetailRows(formik.values.purchaseDetails);
-    }, [formik.values.purchaseDetails]);
+        // Ensure that the transactionDetailRows state is in sync with Formik's values
+        setTransactionDetailRows(formik.values.transactionDetails);
+    }, [formik.values.transactionDetails]);
 
 
     const fetchSuppliers = (option) => {
         fetchSuppliersByStoreId(option.value)
             .then((data) => {
                 if (data && data.length < 1) {
-                    toast.error('No supplier found');
+                    toast.error('No partner found');
                 } else {
-                    const options = data.map((supplier) => ({
-                        id: supplier.id,
-                        value: supplier.id,
-                        label: supplier.name + " - " + supplier.phone,
+                    const options = data.map((partner) => ({
+                        id: partner.id,
+                        value: partner.id,
+                        label: partner.name + " - " + partner.phone,
                     }));
 
-                    formik.setFieldValue("supplier", null)
+                    formik.setFieldValue("partner", null)
                     setSupplierOptions(options);
                 }
             })
@@ -381,7 +381,7 @@ const UpdatePurchase = () => {
 
 
     const handleSuggestionClick = (suggestion, index) => {
-        const newRows = [...formik.values.purchaseDetails];
+        const newRows = [...formik.values.transactionDetails];
         newRows[index] = {
             ...newRows[index],
             productName: suggestion.name,
@@ -390,7 +390,7 @@ const UpdatePurchase = () => {
             dbImage: suggestion.image,
             newImage: null
         };
-        formik.setFieldValue('purchaseDetails', newRows);
+        formik.setFieldValue('transactionDetails', newRows);
         setProductSuggestions(prev => ({ ...prev, [index]: [] })); // Clear suggestions for this row
     };
 
@@ -409,7 +409,7 @@ const UpdatePurchase = () => {
 
 
     if (isUpdatedPurchase || unauthorizedAccess) {
-        return (<ViewPurchaseDetails purchaseInfoFromViewPage={purchase}></ViewPurchaseDetails>)
+        return (<ViewPurchaseDetails purchaseInfoFromViewPage={transaction}></ViewPurchaseDetails>)
     }
 
 
@@ -429,7 +429,7 @@ const UpdatePurchase = () => {
 
             <CCard>
                 <CCardHeader>
-                    <h4>Editing Purchase Order - {purchase && purchase.poNumber}</h4>
+                    <h4>Editing Purchase Order - {transaction && transaction.transactionNumber}</h4>
                 </CCardHeader>
                 <CCardBody>
                     <form onSubmit={formik.handleSubmit} className="row">
@@ -461,47 +461,47 @@ const UpdatePurchase = () => {
 
                         {/* Supplier Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">Supplier</CFormLabel>
+                            <CFormLabel htmlFor="partner">Supplier</CFormLabel>
                             <Select
                                 isDisabled={!formik.values.store} // Disable if store is not selected
-                                id="supplier"
-                                name="supplier"
+                                id="partner"
+                                name="partner"
                                 options={supplierOptions}
-                                value={formik.values.supplier}
-                                onChange={(option) => formik.setFieldValue('supplier', option)}
+                                value={formik.values.partner}
+                                onChange={(option) => formik.setFieldValue('partner', option)}
                                 onBlur={formik.handleBlur}
                                 classNamePrefix="react-select"
                                 className={
-                                    formik.touched.supplier && formik.errors.supplier
+                                    formik.touched.partner && formik.errors.partner
                                         ? 'is-invalid'
                                         : ''
                                 }
                             />
-                            {formik.touched.supplier && formik.errors.supplier && (
+                            {formik.touched.partner && formik.errors.partner && (
                                 <div className="text-danger mt-1">
-                                    {formik.errors.supplier}
+                                    {formik.errors.partner}
                                 </div>
                             )}
                         </div>
 
                         {/* Purchase Date Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="purchaseDate">Purchase Date</CFormLabel>
+                            <CFormLabel htmlFor="transactionDate">Purchase Date</CFormLabel>
                             <input
                                 type="date"
-                                className={`form-control ${formik.touched.purchaseDate && formik.errors.purchaseDate
+                                className={`form-control ${formik.touched.transactionDate && formik.errors.transactionDate
                                     ? 'is-invalid'
                                     : ''
                                     }`}
-                                id="purchaseDate"
-                                name="purchaseDate"
-                                value={formik.values.purchaseDate}
+                                id="transactionDate"
+                                name="transactionDate"
+                                value={formik.values.transactionDate}
                                 onChange={handleChange}
                                 onBlur={formik.handleBlur}
                             />
-                            {formik.touched.purchaseDate && formik.errors.purchaseDate && (
+                            {formik.touched.transactionDate && formik.errors.transactionDate && (
                                 <div className="text-danger mt-1">
-                                    {formik.errors.purchaseDate}
+                                    {formik.errors.transactionDate}
                                 </div>
                             )}
                         </div>
@@ -509,26 +509,26 @@ const UpdatePurchase = () => {
 
                         {/* Purchase Status Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="purchaseStatus">Purchase Status</CFormLabel>
+                            <CFormLabel htmlFor="transactionStatus">Purchase Status</CFormLabel>
                             <select
-                                className={`form-control ${formik.touched.purchaseStatus && formik.errors.purchaseStatus
+                                className={`form-control ${formik.touched.transactionStatus && formik.errors.transactionStatus
                                     ? 'is-invalid'
                                     : ''
                                     }`}
-                                id="purchaseStatus"
-                                name="purchaseStatus"
-                                value={formik.values.purchaseStatus}
+                                id="transactionStatus"
+                                name="transactionStatus"
+                                value={formik.values.transactionStatus}
                                 onChange={handleChange}
                                 onBlur={formik.handleBlur}
                             >
                                 <option value="" label=" -- Select status --" />
-                                {formik.values.purchaseStatus === "OPEN" && <option value="OPEN" label="Open" />}
-                                {formik.values.purchaseStatus === "REJECTED" && <option value="REJECTED" label="Rejected" />}
+                                {formik.values.transactionStatus === "OPEN" && <option value="OPEN" label="Open" />}
+                                {formik.values.transactionStatus === "REJECTED" && <option value="REJECTED" label="Rejected" />}
                                 <option value="SUBMITTED" label="Submit" />
                             </select>
-                            {formik.touched.purchaseStatus && formik.errors.purchaseStatus && (
+                            {formik.touched.transactionStatus && formik.errors.transactionStatus && (
                                 <div className="text-danger mt-1">
-                                    {formik.errors.purchaseStatus}
+                                    {formik.errors.transactionStatus}
                                 </div>
                             )}
                         </div>
@@ -536,18 +536,18 @@ const UpdatePurchase = () => {
 
 
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="purchaseDate">Grand Total</CFormLabel>
+                            <CFormLabel htmlFor="transactionDate">Grand Total</CFormLabel>
                             <div>
                                 =<span style={{ fontWeight: "bold" }}>{grandTotal}</span> TK
                             </div>
 
                         </div>
 
-                        {purchase && purchase.purchaseStatus === "REJECTED" &&
+                        {transaction && transaction.transactionStatus === "REJECTED" &&
                             <div className="form-group col-md-6 mb-3" style={{backgroundColor:"#fe08082b"}}>                                
-                                <b>Rejected By: </b>{purchase.rejectedBy.name} <br></br>
-                                <b>Rejected Date:</b> {formatDate(purchase.rejectedDate)} <br></br>
-                                <b>Reason : </b>{purchase.rejectedNote}
+                                <b>Rejected By: </b>{transaction.rejectedBy.name} <br></br>
+                                <b>Rejected Date:</b> {formatDate(transaction.rejectedDate)} <br></br>
+                                <b>Reason : </b>{transaction.rejectedNote}
                             </div>
                         }
 
@@ -580,12 +580,12 @@ const UpdatePurchase = () => {
 
                         <h4>Purchase Details</h4>
 
-                        {formik.errors.purchaseDetails && formik.touched.purchaseDetails ? (
-                            <div style={{ color: 'red' }}>{formik.errors.purchaseDetails.length == 40 && formik.errors.purchaseDetails}</div>
+                        {formik.errors.transactionDetails && formik.touched.transactionDetails ? (
+                            <div style={{ color: 'red' }}>{formik.errors.transactionDetails.length == 40 && formik.errors.transactionDetails}</div>
                         ) : null}
 
                         <div>
-                            <table className="table purchase-details">
+                            <table className="table transaction-details">
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>
@@ -600,7 +600,7 @@ const UpdatePurchase = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {formik.values.purchaseDetails.map((row, index) => (
+                                    {formik.values.transactionDetails.map((row, index) => (
                                         <tr key={index}>
                                             <td>{index + 1}</td>
                                             <td className='product-table-image-container'>
@@ -617,14 +617,14 @@ const UpdatePurchase = () => {
                                                         ? URL.createObjectURL(row.newImage)
                                                         : BASE_URL + row.dbImage}
                                                 />
-                                                {formik.touched.purchaseDetails?.[index]?.newImage && formik.errors.purchaseDetails?.[index]?.newImage && (
-                                                    <div className="text-danger">{formik.errors.purchaseDetails[index].newImage}</div>
+                                                {formik.touched.transactionDetails?.[index]?.newImage && formik.errors.transactionDetails?.[index]?.newImage && (
+                                                    <div className="text-danger">{formik.errors.transactionDetails[index].newImage}</div>
                                                 )}
                                             </td>
                                             <td className='input-suggestable'>
                                                 <input
                                                     type="text"
-                                                    className={`form-control ${formik.touched.purchaseDetails?.[index]?.productName && formik.errors.purchaseDetails?.[index]?.productName ? 'is-invalid' : ''}`}
+                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.productName && formik.errors.transactionDetails?.[index]?.productName ? 'is-invalid' : ''}`}
                                                     value={row.productName}
                                                     onChange={e => { handleRowChange(index, 'productName', e.target.value) }}
                                                     onFocus={e => { handleRowChange(index, 'productName', e.target.value) }}
@@ -642,58 +642,58 @@ const UpdatePurchase = () => {
                                                     </ul>
                                                 )}
 
-                                                {formik.touched.purchaseDetails?.[index]?.productName && formik.errors.purchaseDetails?.[index]?.productName && (
-                                                    <div className="text-danger">{formik.errors.purchaseDetails[index].productName}</div>
+                                                {formik.touched.transactionDetails?.[index]?.productName && formik.errors.transactionDetails?.[index]?.productName && (
+                                                    <div className="text-danger">{formik.errors.transactionDetails[index].productName}</div>
                                                 )}
                                             </td>
                                             <td>
                                                 <input
                                                     type="text"
-                                                    className={`form-control ${formik.touched.purchaseDetails?.[index]?.size && formik.errors.purchaseDetails?.[index]?.size ? 'is-invalid' : ''}`}
+                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.size && formik.errors.transactionDetails?.[index]?.size ? 'is-invalid' : ''}`}
                                                     value={row.size}
                                                     onChange={e => handleRowChange(index, 'size', e.target.value)}
                                                     placeholder="Enter size"
                                                 />
-                                                {formik.touched.purchaseDetails?.[index]?.size && formik.errors.purchaseDetails?.[index]?.size && (
-                                                    <div className="text-danger">{formik.errors.purchaseDetails[index].size}</div>
+                                                {formik.touched.transactionDetails?.[index]?.size && formik.errors.transactionDetails?.[index]?.size && (
+                                                    <div className="text-danger">{formik.errors.transactionDetails[index].size}</div>
                                                 )}
                                             </td>
                                             <td>
                                                 <input
                                                     type="text"
-                                                    className={`form-control ${formik.touched.purchaseDetails?.[index]?.category && formik.errors.purchaseDetails?.[index]?.category ? 'is-invalid' : ''}`}
+                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.category && formik.errors.transactionDetails?.[index]?.category ? 'is-invalid' : ''}`}
                                                     value={row.category}
                                                     onChange={e => handleRowChange(index, 'category', e.target.value)}
                                                     placeholder="Enter category"
                                                 />
-                                                {formik.touched.purchaseDetails?.[index]?.category && formik.errors.purchaseDetails?.[index]?.category && (
-                                                    <div className="text-danger">{formik.errors.purchaseDetails[index].category}</div>
+                                                {formik.touched.transactionDetails?.[index]?.category && formik.errors.transactionDetails?.[index]?.category && (
+                                                    <div className="text-danger">{formik.errors.transactionDetails[index].category}</div>
                                                 )}
                                             </td>
                                             <td>
                                                 <div style={{ display: "flex", alignItems: "center" }}>
                                                     <input
                                                         type="number"
-                                                        className={`form-control ${formik.touched.purchaseDetails?.[index]?.price && formik.errors.purchaseDetails?.[index]?.price ? 'is-invalid' : ''}`}
+                                                        className={`form-control ${formik.touched.transactionDetails?.[index]?.price && formik.errors.transactionDetails?.[index]?.price ? 'is-invalid' : ''}`}
                                                         value={row.price}
                                                         onChange={e => handleRowChange(index, 'price', parseFloat(e.target.value) || 0)}
                                                         placeholder="Enter price"
                                                     /> <span style={{ marginLeft: "7px" }}>TK</span>
                                                 </div>
-                                                {formik.touched.purchaseDetails?.[index]?.price && formik.errors.purchaseDetails?.[index]?.price && (
-                                                    <div className="text-danger">{formik.errors.purchaseDetails[index].price}</div>
+                                                {formik.touched.transactionDetails?.[index]?.price && formik.errors.transactionDetails?.[index]?.price && (
+                                                    <div className="text-danger">{formik.errors.transactionDetails[index].price}</div>
                                                 )}
                                             </td>
                                             <td>
                                                 <input
                                                     type="number"
-                                                    className={`form-control ${formik.touched.purchaseDetails?.[index]?.quantity && formik.errors.purchaseDetails?.[index]?.quantity ? 'is-invalid' : ''}`}
+                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.quantity && formik.errors.transactionDetails?.[index]?.quantity ? 'is-invalid' : ''}`}
                                                     value={row.quantity}
                                                     onChange={e => handleRowChange(index, 'quantity', parseInt(e.target.value) || 0)}
                                                     placeholder="Enter quantity"
                                                 />
-                                                {formik.touched.purchaseDetails?.[index]?.quantity && formik.errors.purchaseDetails?.[index]?.quantity && (
-                                                    <div className="text-danger">{formik.errors.purchaseDetails[index].quantity}</div>
+                                                {formik.touched.transactionDetails?.[index]?.quantity && formik.errors.transactionDetails?.[index]?.quantity && (
+                                                    <div className="text-danger">{formik.errors.transactionDetails[index].quantity}</div>
                                                 )}
                                             </td>
                                             <td>{row.total}</td>

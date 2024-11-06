@@ -126,9 +126,9 @@ const routes = [
       // PROCUREMENT & SALES
       { path: '/procurement/purchase', exact: true, name: "Purchase", element: CreatePurchase},
       { path: '/procurement/purchase-history', name: "Purchase History", element: PurchaseHistory},
-      { path: '/procurement/view-purchase-details/:id/:poNumber', name: "View purchase details", element: ViewPurchaseDetails},
-      { path: '/procurement/edit-purchase-details/:id/:poNumber', name: "Edit purchase details", element: UpdatePurchase},
-      { path: '/procurement/update-purchase-status/:id/:poNumber', name: "Update purchase status", element: UpdatePurchaseStatus},
+      { path: '/procurement/view-purchase-details/:id/:transactionNumber', name: "View purchase details", element: ViewPurchaseDetails},
+      { path: '/procurement/edit-purchase-details/:id/:transactionNumber', name: "Edit purchase details", element: UpdatePurchase},
+      { path: '/procurement/update-purchase-status/:id/:transactionNumber', name: "Update purchase status", element: UpdatePurchaseStatus},
 
       { path: '/sales/sell', exact: true, name: "Sell", element: CreateSale},
       { path: '/sales/sell-history', name: "Sell History", element: SellHistory},

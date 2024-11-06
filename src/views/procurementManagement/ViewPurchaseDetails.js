@@ -11,23 +11,23 @@ import { downloadPurchaseReport, findPurchaseByIdAndPO, generatePOPdf, updatePur
 import { formatDate } from 'services/utils';
 import Page404 from 'views/pages/page404/Page404';
 
-const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequestForUpdateStatus }) => {
+const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, transactionDetails, isRequestForUpdateStatus }) => {
     const [isLoading, setLoading] = useState(true);
     const [isDownloading, setDownloading] = useState(false);
     const [message, setMessage] = useState({});
 
 
     const [purchase, setPurchase] = useState(null);
-    const { id, poNumber } = useParams();
+    const { id, transactionNumber } = useParams();
 
 
     useEffect(() => {
         setPurchase(purchaseInfoFromViewPage);
-    }, [purchaseInfoFromViewPage, id, poNumber])
+    }, [purchaseInfoFromViewPage, id, transactionNumber])
 
     useEffect(() => {
         if (isRequestForUpdateStatus) {
-            setPurchase(purchaseDetails);
+            setPurchase(transactionDetails);
         }
     }, [isRequestForUpdateStatus])
 
@@ -35,11 +35,12 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
     useEffect(() => {
         setLoading(false)
         if (!isRequestForUpdateStatus) {
-            if (id && poNumber) {
+            if (id && transactionNumber) {
                 setLoading(true)
-                findPurchaseByIdAndPO(id, poNumber)
+                findPurchaseByIdAndPO(id, transactionNumber)
                     .then((data) => {
-                        if ((getCurrentUserInfo().id === data.addedBy.id) || userHasRole("ROLE_PURCHASE_GET")) {
+                        console.log(data)
+                        if ((getCurrentUserInfo().id === data.processedBy.id) || userHasRole("ROLE_PURCHASE_GET")) {
                             data && setPurchase(data)
                         }
                     })
@@ -51,7 +52,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                     })
             }
         }
-    }, [id, poNumber])
+    }, [id, transactionNumber])
 
 
 
@@ -63,19 +64,19 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
     const updateStatus = (status) => {
         const requestBody = {
             id: purchase.id,
-            poNumber: purchase.poNumber,
-            purchaseStatus: status,
+            transactionNumber: purchase.transactionNumber,
+            transactionStatus: status,
             rejectedNote: status === "REJECTED" ? rejectedNote : "", // Set the rejectedNote only for "REJECTED" status      
         };
 
 
         updatePurchaseStatus(requestBody)
             .then((data) => {
-                toast.success("Purchase (" + poNumber + ") status updated !!", {
+                toast.success("Purchase Order (" + transactionNumber + ") status updated !!", {
                     position: "bottom-center",
                     theme: "dark",
                 })
-                navigate(`/procurement/view-purchase-details/${id}/${poNumber}`)
+                navigate(`/procurement/view-purchase-details/${id}/${transactionNumber}`)
             })
             .catch((err) => {
                 console.log(err)
@@ -104,7 +105,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
     const handleDownload = async () => {
         setDownloading(true);
         try {
-            downloadPurchaseReport(purchase.id, purchase.poNumber);
+            downloadPurchaseReport(purchase.id, purchase.transactionNumber);
         } catch (error) {
             alert('Could not download the report. Please try again.');
         } finally {
@@ -131,7 +132,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                     <CIcon icon={cilPrint}></CIcon> &nbsp;
                                     {isDownloading ? 'Downloading...' : 'PDF'}
                                 </button> &nbsp;
-                                {purchaseInfoFromViewPage && <Link target='_blank' to={`/procurement/view-purchase-details/${purchase.id}/${purchase.poNumber}`} className='btn btn-info'>View in separate page</Link>}
+                                {purchaseInfoFromViewPage && <Link target='_blank' to={`/procurement/view-purchase-details/${purchase.id}/${purchase.transactionNumber}`} className='btn btn-info'>View in separate page</Link>}
                             </div>
                         </CCardHeader>
                         <CCardBody className='purchase-details-card-body'>
@@ -139,7 +140,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                 <tbody>
                                     <tr>
                                         <th>Purchase Order</th>
-                                        <td>{purchase.poNumber}</td>
+                                        <td>{purchase.transactionNumber}</td>
                                     </tr>
                                     <tr>
                                         <th>Store</th>
@@ -152,14 +153,14 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                     <tr>
                                         <th>Supplier</th>
                                         <td>
-                                            <p><b>Name : </b>{purchase.supplier.name}</p>
-                                            <p><b>Phone : </b>{purchase.supplier.phone}</p>
+                                            <p><b>Name : </b>{purchase.partner.name}</p>
+                                            <p><b>Phone : </b>{purchase.partner.phone}</p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <th>Purchase Date</th>
                                         <td>
-                                            {formatDate(purchase.purchaseDate)}
+                                            {formatDate(purchase.transactionDate)}
                                         </td>
                                     </tr>
                                     <tr>
@@ -171,7 +172,8 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                     <tr>
                                         <th>Status</th>
                                         <td>
-                                            {purchase.purchaseStatus}
+                                            {purchase.transactionStatus === "REJECTED" ? <b style={{color:"red"}}>{purchase.transactionStatus}</b> :purchase.transactionStatus}
+                                            
                                         </td>
                                     </tr>
                                     <tr>
@@ -180,7 +182,7 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                             {purchase.remark}
                                         </td>
                                     </tr>
-                                    {purchase.purchaseStatus === "REJECTED" &&
+                                    {purchase.transactionStatus === "REJECTED" &&
 
                                         <>
                                             <tr>
@@ -227,8 +229,8 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {purchase.purchaseDetails && purchase.purchaseDetails.length > 0 ? (
-                                        purchase.purchaseDetails.map((detail) => (
+                                    {purchase.transactionDetails && purchase.transactionDetails.length > 0 ? (
+                                        purchase.transactionDetails.map((detail) => (
                                             <tr key={detail.id}>
                                                 <td>{detail.id}</td>
                                                 <td>
@@ -271,15 +273,19 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, purchaseDetails, isRequ
 
                         {isRequestForUpdateStatus &&
                             <CCardFooter style={{ textAlign: 'right' }}>
-                                {purchase.purchaseStatus === "CLOSED" && <div className='text-info text-center'>The purchase order has been closed! No action available to perform.</div>}
-                                {(purchase.purchaseStatus === "SUBMITTED" || purchase.purchaseStatus === "REJECTED" || purchase.purchaseStatus === "REJECTED_MODIFIED") && <button className='btn btn-success btn-sm me-2' onClick={() => updateStatus("APPROVED")}>Approve</button>}
-                                {/* {(purchase.purchaseStatus === "SUBMITTED") && <button className='btn btn-danger btn-sm me-2' onClick={() => updateStatus("REJECTED")}>Reject</button>} */}
-                                {purchase.purchaseStatus === "SUBMITTED" || purchase.purchaseStatus === "REJECTED_MODIFIED" && (
+                                {purchase.transactionStatus === "CLOSED" && <div className='text-info text-center'>The purchase order has been closed! No action available to perform.</div>}
+                                {(purchase.transactionStatus === "SUBMITTED" || purchase.transactionStatus === "REJECTED" || purchase.transactionStatus === "REJECTED_MODIFIED") && (
+                                    <button className='btn btn-success btn-sm me-2' onClick={() => updateStatus("APPROVED")}>
+                                        Approve
+                                    </button>
+                                )}
+                                {/* {(purchase.transactionStatus === "SUBMITTED") && <button className='btn btn-danger btn-sm me-2' onClick={() => updateStatus("REJECTED")}>Reject</button>} */}
+                                {(purchase.transactionStatus === "SUBMITTED" || purchase.transactionStatus === "REJECTED_MODIFIED") && (
                                     <button className='btn btn-danger btn-sm me-2' onClick={handleRejectClick}>
                                         Reject
                                     </button>
                                 )}
-                                {(purchase.purchaseStatus === "APPROVED" || purchase.purchaseStatus === "REJECTED" || purchase.purchaseStatus === "REJECTED_MODIFIED") && <button onClick={() => updateStatus("CLOSED")} className='btn btn-warning btn-sm me-2'>Close</button>}
+                                {(purchase.transactionStatus === "APPROVED" || purchase.transactionStatus === "REJECTED" || purchase.transactionStatus === "REJECTED_MODIFIED") && <button onClick={() => updateStatus("CLOSED")} className='btn btn-warning btn-sm me-2'>Close</button>}
                             </CCardFooter>
                         }
                     </CCard>

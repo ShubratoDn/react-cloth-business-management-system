@@ -63,9 +63,6 @@ const PurchaseHistory = () => {
         if (field === 'status') {
             setStatus(value);
         }
-
-        console.log(value)
-
         setPage(0);
     };
 
@@ -188,9 +185,9 @@ const PurchaseHistory = () => {
 
 
     const isPOEditabel = (details) => {
-        let status = details.purchaseStatus
+        let status = details.transactionStatus
         if (status === "OPEN" || status === "REJECTED") {
-            if ((getCurrentUserInfo().id === details.addedBy.id) || userHasRole("ROLE_PURCHASE_UPDATE")) {
+            if ((getCurrentUserInfo().id === details.processedBy.id) || userHasRole("ROLE_PURCHASE_UPDATE")) {
                 return true;
             }
         }
@@ -203,7 +200,7 @@ const PurchaseHistory = () => {
         <>
             <CCard>
                 <CCardHeader>
-                    Search Criteria
+                    <h3>Search Purchase Details</h3>
                 </CCardHeader>
                 <CCardBody>
                     <form className='row'>
@@ -345,13 +342,13 @@ const PurchaseHistory = () => {
                                     content.map((details) => (
                                         <tr key={details.id}>
                                             <td>{details.id}</td>
-                                            <td>{details.poNumber && details.poNumber}</td>
+                                            <td>{details.transactionNumber && details.transactionNumber}</td>
                                             <td>{details.store.storeName}</td>
-                                            <td>{details.supplier.name}</td>
-                                            <td>{details.purchaseDate}</td>
+                                            <td>{details.partner.name}</td>
+                                            <td>{details.transactionDate}</td>
                                             <td>{details.totalAmount}</td>
-                                            <td>{details.addedBy.name}</td>
-                                            <td>{details.purchaseStatus}</td>
+                                            <td>{details.processedBy.name}</td>
+                                            <td>{details.transactionStatus}</td>
                                             <td>
                                                 <button
                                                     type="button"
@@ -363,11 +360,11 @@ const PurchaseHistory = () => {
 
                                                 {
                                                     isPOEditabel(details) && 
-                                                    <Link to={`/procurement/edit-purchase-details/${details.id}/${details.poNumber}`} className="btn btn-success btn-sm">Edit </Link>
+                                                    <Link to={`/procurement/edit-purchase-details/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Edit </Link>
                                                 }
                                                 
                                                 {
-                                                    (details.purchaseStatus !== "OPEN" && details.purchaseStatus !== "REJECTED") &&<Link to={`/procurement/update-purchase-status/${details.id}/${details.poNumber}`} className="btn btn-success btn-sm">Update Status </Link>
+                                                    (details.transactionStatus !== "OPEN" && details.transactionStatus !== "REJECTED") &&<Link to={`/procurement/update-purchase-status/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Update Status </Link>
                                                 }
                                                 
                                             </td>

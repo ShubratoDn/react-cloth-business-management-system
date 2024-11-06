@@ -96,8 +96,9 @@ const CreatePurchase = () => {
 
             let formData = new FormData();
             formData.append("store.id", values.store.id);
-            formData.append("supplier.id", values.supplier.id);
-            formData.append("purchaseDate", values.purchaseDate);
+            formData.append("partner.id", values.supplier.id);
+            formData.append("transactionDate", values.purchaseDate);
+            formData.append("transactionType", "PURCHASE");
             formData.append("remark", values.remark);
 
             formData.append("discountAmount", discount);
@@ -109,28 +110,31 @@ const CreatePurchase = () => {
 
             // Handle Purchase Details
             purchaseDetailRows.forEach((row, index) => {
-                formData.append(`purchaseDetails[${index}].product.name`, row.productName);
-                formData.append(`purchaseDetails[${index}].product.size`, row.size);
-                formData.append(`purchaseDetails[${index}].product.category.name`, row.category);
-                formData.append(`purchaseDetails[${index}].price`, row.price);
-                formData.append(`purchaseDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
-                formData.append(`purchaseDetails[${index}].total`, row.total);
-                row.newImage && formData.append(`purchaseDetails[${index}].productImage`, row.newImage);
+                formData.append(`transactionDetails[${index}].product.name`, row.productName);
+                formData.append(`transactionDetails[${index}].product.size`, row.size);
+                formData.append(`transactionDetails[${index}].product.category.name`, row.category);
+                formData.append(`transactionDetails[${index}].price`, row.price);
+                formData.append(`transactionDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
+                formData.append(`transactionDetails[${index}].total`, row.total);
+                row.newImage && formData.append(`transactionDetails[${index}].productImage`, row.newImage);
             });
 
             addPurchase(formData)
                 .then((response) => {
-                    toast.success("Purchase (" + response.poNumber + ") has been created successfully.", {
+                    toast.success("Purchase Order (" + response.transactionNumber + ") has been created successfully.", {
                         position: 'bottom-center',
                         theme: 'dark',
                     });
-                    setMessage({ success: "Purchase (" + response.poNumber + ") has been created successfully." })
+                    setMessage({ success: "Purchase (" + response.transactionNumber + ") has been created successfully." })
                     resetForm();
                     setPurchaseDetailRows([{ productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
-                    setGrandTotal(0); // Reset Grand Total
+                    setGrandTotal(0.00); // Reset Grand Total
                     setProductSuggestions({})
+                    setDiscount(0);
+                    setCharge(0);
                 })
                 .catch((err) => {
+                    setGrandTotal(0.00);
                     console.error(err);
                     if (err.response && err.response.data && err.response.data.message) {
                         toast.error(err.response.data.message, {

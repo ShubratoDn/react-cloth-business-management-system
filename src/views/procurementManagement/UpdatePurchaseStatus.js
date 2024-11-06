@@ -8,18 +8,19 @@ import Page401 from "views/pages/page401/Page401";
 const UpdatePurchaseStatus = () => {
     const [isLoading, setLoading] = useState(true);
     const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
+    const [message, setMessage] = useState("");
 
-    const [purchase, setPurchase] = useState(null);
-    const { id, poNumber } = useParams();
+    const [transaction, setTransaction] = useState(null);
+    const { id, transactionNumber } = useParams();
 
     useEffect(() => {
         setLoading(false);
         if (userHasRole("ROLE_PURCHASE_AUTHORIZATION")) {
-            if (id && poNumber) {
+            if (id && transactionNumber) {
                 setLoading(true);
-                findPurchaseByIdAndPO(id, poNumber)
+                findPurchaseByIdAndPO(id, transactionNumber)
                     .then((data) => {
-                        data && (data.purchaseStatus !== "OPEN" && data.purchaseStatus !== "REJECTED") && setPurchase(data);
+                        data && ((data.transactionStatus !== "OPEN" && data.transactionStatus !== "REJECTED") ? setTransaction(data) : setMessage("Transaction Status is not in updating stage"));
                     })
                     .catch((err) => {
                         console.log(err);
@@ -31,16 +32,17 @@ const UpdatePurchaseStatus = () => {
         } else {
             setUnauthorizedAccess(true);
         }
-    }, [id, poNumber]);
+    }, [id, transactionNumber]);
 
     return (
         <>
             {isLoading ? (
                 <div>Please wait</div>
-            ) : unauthorizedAccess ? (
+            ) :  message ? <h1>{message}</h1> :
+            unauthorizedAccess ? (
                 <Page401></Page401>
             ) : (
-                <ViewPurchaseDetails purchaseDetails={purchase} isRequestForUpdateStatus={true}></ViewPurchaseDetails>
+                <ViewPurchaseDetails transactionDetails={transaction} isRequestForUpdateStatus={true}></ViewPurchaseDetails>
             )}
         </>
     );
