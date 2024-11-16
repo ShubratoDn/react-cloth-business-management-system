@@ -15,17 +15,17 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { addPurchase, findPurchaseByIdAndPO, updatePurchase } from 'services/purchaseServices';
 import { getCurrentUserInfo, getLoggedInUsersAssignedStore, userHasRole } from 'services/auth';
-import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
+import { fetchCustomersByStoreId, fetchSuppliersByStoreId } from 'services/stakeholderServices';
 import { searchProducts } from 'services/productServices';
 import { BASE_URL } from 'configs/axiosConfig';
 import CIcon from '@coreui/icons-react';
 import { cilCamera } from '@coreui/icons';
 import { useParams } from 'react-router-dom';
 import Page404 from 'views/pages/page404/Page404';
-import ViewPurchaseDetails from './ViewPurchaseDetails';
+import ViewSaleDetails from './ViewSaleDetails';
 import { formatDate } from 'services/utils';
 
-const UpdatePurchase = () => {
+const UpdateSale = () => {
     const [isLoading, setLoading] = useState(false);
     const [message, setMessage] = useState({});
     const [poNotFound, setPOnotFound] = useState(false);
@@ -97,7 +97,7 @@ const UpdatePurchase = () => {
         },
         validationSchema: Yup.object({
             store: Yup.object().nullable().required('Store is required'),
-            partner: Yup.object().nullable().required('Supplier is required'),
+            partner: Yup.object().nullable().required('Customer is required'),
             transactionDate: Yup.date().required('Purchase date is required'),
             remark: Yup.string().max(255, 'Remark cannot exceed 255 characters'),
             transactionStatus: Yup.string().required('Purchase status is required'),
@@ -182,9 +182,9 @@ const UpdatePurchase = () => {
                     return;
                 }
 
-                if(data && data.transactionType !== "PURCHASE"){
+                if(data && data.transactionType !== "SALE"){
                     
-                    toast.error("Invalid Purchase Order", {
+                    toast.error("Invalid Sale Order", {
                         position: "bottom-center",
                         theme: "dark",
                     })
@@ -309,8 +309,8 @@ const UpdatePurchase = () => {
     }, [formik.values.transactionDetails]);
 
 
-    const fetchSuppliers = (option) => {
-        fetchSuppliersByStoreId(option.value)
+    const fetchCustomer = (option) => {
+        fetchCustomersByStoreId(option.value)
             .then((data) => {
                 if (data && data.length < 1) {
                     toast.error('No partner found');
@@ -415,7 +415,7 @@ const UpdatePurchase = () => {
 
 
     if (isUpdatedPurchase || unauthorizedAccess) {
-        return (<ViewPurchaseDetails purchaseInfoFromViewPage={transaction}></ViewPurchaseDetails>)
+        return (<ViewSaleDetails purchaseInfoFromViewPage={transaction}></ViewSaleDetails>)
     }
 
 
@@ -449,7 +449,7 @@ const UpdatePurchase = () => {
                                 value={formik.values.store}
                                 onChange={(option) => {
                                     formik.setFieldValue('store', option);
-                                    fetchSuppliers(option);
+                                    fetchCustomer(option);
                                 }}
                                 onBlur={formik.handleBlur}
                                 classNamePrefix="react-select"
@@ -465,9 +465,9 @@ const UpdatePurchase = () => {
                             )}
                         </div>
 
-                        {/* Supplier Field */}
+                        {/* customer Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="partner">Supplier</CFormLabel>
+                            <CFormLabel htmlFor="partner">Customer</CFormLabel>
                             <Select
                                 isDisabled={!formik.values.store} // Disable if store is not selected
                                 id="partner"
@@ -791,4 +791,4 @@ const UpdatePurchase = () => {
     );
 };
 
-export default UpdatePurchase;
+export default UpdateSale;

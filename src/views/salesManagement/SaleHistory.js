@@ -3,19 +3,19 @@ import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { toast } from 'react-toastify';
-import { searchProducts } from 'services/productServices';
 import Select from 'react-select';
-import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
+import { fetchCustomersByStoreId, fetchSuppliersByStoreId } from 'services/stakeholderServices';
 import { getCurrentUserInfo, getLoggedInUsersAssignedStore, userHasRole } from 'services/auth';
 import { searchPurchase } from 'services/purchaseServices';
-import ViewPurchaseDetails from './ViewPurchaseDetails';
-import { Link, useNavigate } from 'react-router-dom';
+import ViewSaleDetails from './ViewSaleDetails';
+import { Link } from 'react-router-dom';
+import { searchSale } from 'services/saleServices';
 
-const PurchaseHistory = () => {
+const SaleHistory = () => {
 
     const [store, setStore] = useState(null);
-    const [supplier, setSupplier] = useState(null);
-    const [poNumber, setPoNumber] = useState('');
+    const [customer, setSupplier] = useState(null);
+    const [soNumber, setPoNumber] = useState('');
     const [status, setStatus] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
@@ -32,10 +32,10 @@ const PurchaseHistory = () => {
 
 
     const [modalVisible, setModalVisible] = useState(false);
-    const [selectedPurchase, setSelectedPurchase] = useState(null);
+    const [selectedSale, setSelectedSale] = useState(null);
 
     const handleViewClick = (details) => {
-        setSelectedPurchase(details); // Set the selected purchase
+        setSelectedSale(details); // Set the selected purchase
         setModalVisible(true); // Show the modal
     };
 
@@ -44,11 +44,11 @@ const PurchaseHistory = () => {
             setStore(value)
         }
 
-        if (field === 'supplier') {
+        if (field === 'customer') {
             setSupplier(value)
         }
 
-        if (field === 'poNumber') {
+        if (field === 'soNumber') {
             setPoNumber(value)
         }
 
@@ -70,9 +70,9 @@ const PurchaseHistory = () => {
         setLoading(true);
         setMessage({})
         let storeId = store && store.id;
-        let supplierId = supplier && supplier.id;
+        let supplierId = customer && customer.id;
 
-        searchPurchase(storeId, supplierId, poNumber, status, fromDate, toDate, page, 10)
+        searchSale(storeId, supplierId, soNumber, status, fromDate, toDate, page, 10)
             .then((response) => {
                 setData(response);
                 if (page === 0) {
@@ -107,10 +107,10 @@ const PurchaseHistory = () => {
     };
 
     useEffect(() => {
-        if (store) {
+        if (store || soNumber) {
             getPurchaseDetails();
         }
-    }, [page, store, supplier, poNumber, fromDate, toDate, status]); // Trigger the effect on page or query change
+    }, [page, store, customer, soNumber, fromDate, toDate, status]); // Trigger the effect on page or query change
 
     const requestForData = () => {
         setPage((prevPage) => prevPage + 1);
@@ -138,15 +138,15 @@ const PurchaseHistory = () => {
     }, [store])
 
     const fetchSuppliers = (option) => {
-        fetchSuppliersByStoreId(option.value)
+        fetchCustomersByStoreId(option.value)
             .then((data) => {
                 if (data && data.length < 1) {
-                    toast.error('No supplier found');
+                    toast.error('No customer found');
                 } else {
-                    const options = data.map((supplier) => ({
-                        id: supplier.id,
-                        value: supplier.id,
-                        label: supplier.name + " - " + supplier.phone,
+                    const options = data.map((customer) => ({
+                        id: customer.id,
+                        value: customer.id,
+                        label: customer.name + " - " + customer.phone,
                     }));
                     setSupplierOptions(options);
                 }
@@ -200,7 +200,7 @@ const PurchaseHistory = () => {
         <>
             <CCard>
                 <CCardHeader>
-                    <h3>Search Purchase Details</h3>
+                    <h3>Search Sale Details</h3>
                 </CCardHeader>
                 <CCardBody>
                     <form className='row'>
@@ -219,17 +219,17 @@ const PurchaseHistory = () => {
                             />
                         </div>
 
-                        {/* Supplier Field */}
+                        {/* Customer Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">Supplier</CFormLabel>
+                            <CFormLabel htmlFor="customer">Customer</CFormLabel>
                             <Select
                                 isDisabled={!store} // Disable if store is not selected
-                                id="supplier"
-                                name="supplier"
+                                id="customer"
+                                name="customer"
                                 options={supplierOptions}
-                                value={supplier}
+                                value={customer}
                                 onChange={(option) => {
-                                    handleSearch('supplier', option);
+                                    handleSearch('customer', option);
                                 }}
                                 classNamePrefix="react-select"
                             />
@@ -238,14 +238,14 @@ const PurchaseHistory = () => {
 
 
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">PO number</CFormLabel>
+                            <CFormLabel htmlFor="customer"> SO number</CFormLabel>
                             <input
                                 type="text"
                                 className='form-control me-3'
-                                placeholder="Enter PO number"
-                                value={poNumber}
-                                onChange={e => handleSearch('poNumber', e.target.value)}
-                                onKeyUp={e => handleSearch('poNumber', e.target.value)}
+                                placeholder="Enter  SO number"
+                                value={soNumber}
+                                onChange={e => handleSearch('soNumber', e.target.value)}
+                                onKeyUp={e => handleSearch('soNumber', e.target.value)}
                             />
                         </div>
 
@@ -270,7 +270,7 @@ const PurchaseHistory = () => {
 
 
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">From Date</CFormLabel>
+                            <CFormLabel htmlFor="customer">From Date</CFormLabel>
                             <input
                                 type="date"
                                 className='form-control me-3'
@@ -282,7 +282,7 @@ const PurchaseHistory = () => {
 
 
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">To Date</CFormLabel>
+                            <CFormLabel htmlFor="customer">To Date</CFormLabel>
                             <input
                                 type="date"
                                 className='form-control me-3'
@@ -313,7 +313,7 @@ const PurchaseHistory = () => {
 
             <CCard>
                 <CCardHeader>
-                    <h4>{"Purchase Details"}</h4>
+                    <h4>{"Sale Details"}</h4>
                 </CCardHeader>
                 <CCardBody>
                     <InfiniteScroll
@@ -327,11 +327,11 @@ const PurchaseHistory = () => {
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th>PO Number</th>
-                                    <th>Type</th>
+                                    <th> SO Number</th>
+                                    <th> Type</th>
                                     <th scope="col">Store</th>
-                                    <th scope="col">Supplier</th>
-                                    <th scope="col">Purchase Date</th>
+                                    <th scope="col">Customer</th>
+                                    <th scope="col">Sale Date</th>
                                     <th scope="col">Amount</th>
                                     <th scope="col">Created by</th>
                                     <th scope="col">Status</th>
@@ -362,7 +362,7 @@ const PurchaseHistory = () => {
 
                                                 {
                                                     isPOEditabel(details) && 
-                                                    <Link to={`/procurement/edit-purchase-details/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Edit </Link>
+                                                    <Link to={`/procurement/edit-sale-details/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Edit </Link>
                                                 }
                                                 
                                                 {
@@ -383,11 +383,11 @@ const PurchaseHistory = () => {
             {/* Modal for viewing purchase details */}
             <CModal visible={modalVisible} onClose={() => setModalVisible(false)} size='lg'>
                 <CModalHeader closeButton>
-                    <h5>Purchase Details</h5>
+                    <h5>Sale Details</h5>
                 </CModalHeader>
                 <CModalBody>
-                    {/* Pass the selectedPurchase as props to ViewPurchaseDetails */}
-                    {selectedPurchase && <ViewPurchaseDetails purchaseInfoFromViewPage={selectedPurchase} />}
+                    {/* Pass the selectedSale as props to ViewSaleDetails */}
+                    {selectedSale && <ViewSaleDetails saleInfoFromViewPage={selectedSale} />}
                 </CModalBody>
                 <div className="modal-footer">
                     <CButton color="secondary" onClick={() => setModalVisible(false)}>
@@ -399,4 +399,4 @@ const PurchaseHistory = () => {
     );
 }
 
-export default PurchaseHistory
+export default SaleHistory

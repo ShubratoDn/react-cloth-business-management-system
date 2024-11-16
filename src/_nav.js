@@ -269,7 +269,7 @@ const _nav = [
             {
                 component: CNavItem,
                 name: 'Sale History',
-                to: '/sales/sell-history',
+                to: '/sales/sale-history',
                 roleRequired: "ROLE_SALE_SEARCH"
             },  
         ]

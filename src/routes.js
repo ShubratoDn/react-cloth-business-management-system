@@ -20,7 +20,9 @@ import UpdatePurchaseStatus from 'views/procurementManagement/UpdatePurchaseStat
 import FindStock from 'views/stockManagement/FindStock'
 import StockOverview from 'views/stockManagement/StockOverview'
 import CreateSale from 'views/salesManagement/CreateSale'
-import SellHistory from 'views/salesManagement/SellHistory'
+import SellHistory from 'views/salesManagement/SaleHistory'
+import ViewSaleDetails from 'views/salesManagement/ViewSaleDetails'
+import UpdateSale from 'views/salesManagement/UpdateSale'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -131,7 +133,9 @@ const routes = [
       { path: '/procurement/update-purchase-status/:id/:transactionNumber', name: "Update purchase status", element: UpdatePurchaseStatus},
 
       { path: '/sales/sell', exact: true, name: "Sell", element: CreateSale},
-      { path: '/sales/sell-history', name: "Sell History", element: SellHistory},
+      { path: '/sales/sale-history', name: "Sell History", element: SellHistory},
+      { path: '/procurement/view-sale-details/:id/:transactionNumber', name: "View Sale details", element: ViewSaleDetails},
+      { path: '/procurement/edit-sale-details/:id/:transactionNumber', name: "Edit Sale details", element: UpdateSale},
       // PROCUREMENT & SALES ENDS
 
 
