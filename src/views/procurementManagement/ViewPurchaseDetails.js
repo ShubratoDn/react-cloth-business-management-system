@@ -105,15 +105,14 @@ const ViewPurchaseDetails = ({ purchaseInfoFromViewPage, transactionDetails, isR
     const handleDownload = async () => {
         setDownloading(true);
         try {
-            downloadPurchaseReport(purchase.id, purchase.transactionNumber);
+            await downloadPurchaseReport(purchase.id, purchase.transactionNumber);
         } catch (error) {
             alert('Could not download the report. Please try again.');
         } finally {
-            setTimeout(() => {
-                setDownloading(false);
-            }, 1000)
+            setDownloading(false);
         }
     };
+    
 
 
     return (
