@@ -7,47 +7,48 @@ import {
     CCardBody,
     CCardHeader,
     CButton,
-    CFormGroup,
     CFormLabel,
     CAlert,
 } from '@coreui/react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { addPurchase, findPurchaseByIdAndPO, updatePurchase } from 'services/purchaseServices';
 import { getCurrentUserInfo, getLoggedInUsersAssignedStore, userHasRole } from 'services/auth';
-import { fetchCustomersByStoreId, fetchSuppliersByStoreId } from 'services/stakeholderServices';
-import { searchProducts } from 'services/productServices';
-import { BASE_URL } from 'configs/axiosConfig';
-import CIcon from '@coreui/icons-react';
-import { cilCamera } from '@coreui/icons';
+import { fetchCustomersByStoreId } from 'services/stakeholderServices';
+import { getStocksByStore } from 'services/stockServices';
+import { addSale, updateSaleOrder } from 'services/saleServices';
 import { useParams } from 'react-router-dom';
+import { findPurchaseByIdAndPO } from 'services/purchaseServices';
 import Page404 from 'views/pages/page404/Page404';
 import ViewSaleDetails from './ViewSaleDetails';
-import { formatDate } from 'services/utils';
 
 const UpdateSale = () => {
-    const [isLoading, setLoading] = useState(false);
-    const [message, setMessage] = useState({});
+
     const [poNotFound, setPOnotFound] = useState(false);
     const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
     const [isUpdatedPurchase, setUpdatedPurchase] = useState(false);
-    const [storeOptions, setStoreOptions] = useState([]);
+
     const [supplierOptions, setSupplierOptions] = useState([]);
     const [transactionDetailRows, setTransactionDetailRows] = useState([{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
-    const [grandTotal, setGrandTotal] = useState(0); // Grand total state
+
     const [productSuggestions, setProductSuggestions] = useState({});
+
+    const [transaction, setTransaction] = useState(null);
+    const { id, transactionNumber } = useParams();
+    
+    const [isLoading, setLoading] = useState(false);
+    const [message, setMessage] = useState({});
+    const [storeOptions, setStoreOptions] = useState([]);
+    const [customerOptions, setCustomerOptions] = useState([]);
+    const [saleDetailRows, setSaleDetailRows] = useState([{ product: '', price: '', quantity: '', total: 0, dbImage: '' }]);
     const [productPricesTotal, setProductPricesTotal] = useState(0);
+    const [grandTotal, setGrandTotal] = useState(0);
+
+    const [stockSuggestions, setStockSuggestions] = useState([]);
 
     const [discount, setDiscount] = useState(0); // State to handle discount amount
     const [discountRemark, setDiscountRemark] = useState(""); // State to handle discount amount
     const [charge, setCharge] = useState(0);     // State to handle charge amount
     const [chargeRemark, setChargeRemark] = useState("");     // State to handle charge amount
-
-
-    const [transaction, setTransaction] = useState(null);
-    const { id, transactionNumber } = useParams();
-
-
 
     // Fetch Stores
     useEffect(() => {
@@ -61,48 +62,45 @@ const UpdateSale = () => {
         setStoreOptions(options);
     }, []);
 
-    const purchaseDetailValidationSchema = Yup.array()
-        .of(
-            Yup.object().shape({
-                productName: Yup.string().required('Product name is required'),
-                size: Yup.string().required('Size is required'),
-                category: Yup.string().required('Category is required'),
-                price: Yup.number()
-                    .required('Price is required')
-                    .min(0, 'Price must be greater than or equal to 0'),
-                quantity: Yup.number()
-                    .required('Quantity is required')
-                    .min(1, 'Quantity must be greater than or equal to 1'),
-                newImage: Yup.mixed()
-                    .notRequired()
-                    .test('fileSize', 'File size is too large. Maximum size is 10MB', value => {
-                        return value ? value.size <= 10000000 : true;
-                    })
-                    .test('fileType', 'Invalid file type. Supported formats: JPEG, PNG, GIF', value => {
-                        return value ? ['image/jpeg', 'image/png', 'image/gif'].includes(value.type) : true;
-                    }),
-            })
-        )
-        .min(1, 'At least one transaction detail is required');
+    const saleDetailValidationSchema = Yup.array().of(
+        Yup.object().shape({
+            product: Yup.number().required('Product is required'),
+            price: Yup.number()
+                .required('Price is required')
+                .min(1, 'Price must be greater than 0'),
+            quantity: Yup.number()
+                .required('Quantity is required')
+                .min(1, 'Quantity must be greater than 0')
+                .test('max-stock', 'Quantity exceeds available stock', function (value) {
+                    const { product } = this.parent;
+                    const stockEntry = stockInfo.find(stock => stock.product.id === product);
+                    if(!stockEntry){
+                        return false;
+                    }
+                    return getTotalQuantityByProductId(product) <= stockEntry.totalQuantity;
+                })
+        })
+    ).min(1, 'At least one sale detail is required');
+    
 
     const formik = useFormik({
         initialValues: {
             store: null,
-            partner: null,
-            transactionDate: new Date().toISOString().split('T')[0], // Set initial value to today's date
-            transactionStatus: '',
+            customer: null,
+            saleDate: new Date().toISOString().split('T')[0], // Set initial value to today's date
             remark: '',
-
-            transactionDetails: [{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }],
+            transactionDetails: [{ product: '', price: '', quantity: '', total: 0, dbImage: '' }],
         },
         validationSchema: Yup.object({
             store: Yup.object().nullable().required('Store is required'),
-            partner: Yup.object().nullable().required('Customer is required'),
-            transactionDate: Yup.date().required('Purchase date is required'),
+            customer: Yup.object().nullable().required('customer is required'),
+            saleDate: Yup.date().required('PurcShase date is required'),
             remark: Yup.string().max(255, 'Remark cannot exceed 255 characters'),
-            transactionStatus: Yup.string().required('Purchase status is required'),
-            transactionDetails: purchaseDetailValidationSchema, // Add validation here
+
+            transactionDetails: saleDetailValidationSchema, // Add validation here
         }),
+        validateOnChange:true,
+        validateOnBlur:true,
         onSubmit: (values, { resetForm }) => {
             setMessage({})
             setLoading(true);
@@ -110,43 +108,38 @@ const UpdateSale = () => {
 
             let formData = new FormData();
             formData.append("store.id", values.store.id);
-            formData.append("partner.id", values.partner.id);
-            formData.append("transactionDate", values.transactionDate);
+            formData.append("partner.id", values.customer.id);
+            formData.append("transactionDate", values.saleDate);
+            formData.append("transactionType", "SALE");
             formData.append("remark", values.remark);
             formData.append("transactionStatus", values.transactionStatus)
 
-            formData.append("discountAmount", parseFloat(discount || 0.0));
+
+            formData.append("discountAmount", discount);
             formData.append("discountRemark", discountRemark);
 
-            formData.append("chargeAmount", parseFloat(charge || 0.0));
+            formData.append("chargeAmount", charge);
             formData.append("chargeRemark", chargeRemark);
 
-            // Handle Purchase Details
-            transactionDetailRows.forEach((row, index) => {
-                formData.append(`transactionDetails[${index}].id`, row.id);
-                formData.append(`transactionDetails[${index}].image`, row.dbImage);
-                formData.append(`transactionDetails[${index}].product.name`, row.productName);
-                formData.append(`transactionDetails[${index}].product.size`, row.size);
-                formData.append(`transactionDetails[${index}].product.category.name`, row.category);
+
+            // Handle sale Details
+            saleDetailRows.forEach((row, index) => {
+                formData.append(`transactionDetails[${index}].product.id`, row.product);
                 formData.append(`transactionDetails[${index}].price`, row.price);
                 formData.append(`transactionDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
                 formData.append(`transactionDetails[${index}].total`, row.total);
-                row.newImage && formData.append(`transactionDetails[${index}].productImage`, row.newImage);
             });
 
-            updatePurchase(id, transactionNumber, formData)
-
+            updateSaleOrder(formData)
                 .then((response) => {
-                    toast.success("Purchase (" + response.transactionNumber + ") has been updated successfully.", {
+                    toast.success("Sale order (" + response.transactionNumber + ") has been created successfully.", {
                         position: 'bottom-center',
                         theme: 'dark',
                     });
-                    setMessage({ success: "Purchase (" + response.transactionNumber + ") has been updated successfully." })
+                    setMessage({ success: "Sale order (" + response.transactionNumber + ") has been created successfully." })
                     resetForm();
-                    setUpdatedPurchase(true);
-                    setTransactionDetailRows([{ id: '', productName: null, size: '', category: '', price: '', quantity: '', total: 0 }]);
-                    setGrandTotal(0); // Reset Grand Total
-                    setProductSuggestions({})
+                    setSaleDetailRows([{ product: '', price: '', quantity: '', total: 0, dbImage: '' }]);
+                    setGrandTotal(0);
                 })
                 .catch((err) => {
                     console.error(err);
@@ -170,6 +163,7 @@ const UpdateSale = () => {
                 });
         },
     });
+
 
     // HANDLE PARAMETER DATA    
     useEffect(() => {
@@ -210,29 +204,29 @@ const UpdateSale = () => {
                         label: data.partner.name + " - " + data.partner.phone,
                     }
 
+                    fetchStockByStore(storeOption);
+
                     //set store value
                     formik.setFieldValue("store", storeOption);
-                    formik.setFieldValue("partner", supplierOption);
+                    formik.setFieldValue("customer", supplierOption);
                     formik.setFieldValue("transactionDate", data.transactionDate)
                     formik.setFieldValue("transactionStatus", data.transactionStatus)
                     formik.setFieldValue("remark", data.remark ? data.remark : '')
 
                     // Extract and Transform transactionDetails from the JSON
-                    const dbPurchaseDetails = data.transactionDetails.map((row, index) => ({
-                        id: row.id,
-                        productName: row.product.name || '',
-                        size: row.product.size || '',
-                        category: row.product.category.name || '',
-                        price: row.price || '',
-                        quantity: row.quantity || '',
-                        total: (row.price * row.quantity) || 0,
-                        dbImage: row.image ? row.image : (row.product.image || ''),
-                        newImage: null,
-                    }));
+                    const dbSaleDetails = data.transactionDetails.map((row, index) => {
+                        return ({
+                            id: row.id,
+                            product: row.product.id || '',
+                            price: row.price || '',
+                            quantity: row.quantity || '',
+                            total: (row.price * row.quantity) || 0,
+                            dbImage: row.image ? row.image : (row.product.image || ''),
+                        })
+                    });
                     // Set the transformed transactionDetails into the Formik field value
-                    formik.setFieldValue('transactionDetails', dbPurchaseDetails);
-                    calculateProductPricesTotal(dbPurchaseDetails);
-
+                    formik.setFieldValue('transactionDetails', dbSaleDetails);
+                    calculateProductPricesTotal(dbSaleDetails);
                 } else {
                     setUnauthorizedAccess(true)
                     toast.error("Purchase Order is not editable", {
@@ -250,8 +244,15 @@ const UpdateSale = () => {
     }, [id, transactionNumber])
 
 
+
+    const createFirstRow = () => {
+        const newRows = [{ product: '', price: '', quantity: '', total: 0, dbImage: '' }];
+        formik.setFieldValue('transactionDetails', newRows);
+        calculateProductPricesTotal(newRows); // Recalculate grand total
+    };
+
     const handleAddRow = () => {
-        const newRows = [...formik.values.transactionDetails, { id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }];
+        const newRows = [...formik.values.transactionDetails, { product: '', price: '', quantity: '', total: 0, dbImage: '' }];
         formik.setFieldValue('transactionDetails', newRows);
         calculateProductPricesTotal(newRows); // Recalculate grand total
     };
@@ -263,30 +264,49 @@ const UpdateSale = () => {
     };
 
 
+
+    const [stockInfo, setStockInfo] = useState([]);
+
     const handleRowChange = (index, field, value) => {
         const newRows = [...formik.values.transactionDetails];
         newRows[index][field] = value;
-
-        if (field === 'productName') {
-            fetchProductSuggestions(value, index);
-        } else if (field === 'price' || field === 'quantity') {
+    
+        if (field === 'price' || field === 'quantity') {
             const price = parseFloat(newRows[index].price) || 0;
             const quantity = parseInt(newRows[index].quantity) || 0;
             newRows[index].total = price * quantity;
         }
-
+    
         formik.setFieldValue('transactionDetails', newRows);
+        // formik.setFieldValue(`transactionDetails[${index}].${field}`, value);
+        formik.setFieldTouched(`transactionDetails[${index}].${field}`, true); // Mark the field as touched
         calculateProductPricesTotal(newRows);
     };
 
+    const getTotalQuantityByProductId = (productId) => {
+        return formik.values.transactionDetails
+            .filter(item => item.product === productId)
+            .reduce((total, item) => total + (parseInt(item.quantity) || 0), 0);
+    };
+    
+    const getRemainingStockByProductId = (productId) => {
+        const stockEntry = stockInfo.find(stock => stock.product.id === productId);
+        const totalProductQuantity = getTotalQuantityByProductId(productId);
+        return stockEntry ? stockEntry.totalQuantity - totalProductQuantity : 0;
+    };
+
+    const getStockQtyByProduct = (productId) => {
+        const stockEntry = stockInfo.find(stock => stock.product.id === productId);
+        return stockEntry ? stockEntry.totalQuantity : 0;
+    };
 
 
-    const calculateProductPricesTotal = (transactionDetailRows) => {
-        const total = transactionDetailRows.reduce((acc, row) => {
-            if (row.productName) {
-                return acc + row.total;
-            }
-            return acc;
+    const calculateProductPricesTotal = (saleDetailRows) => {
+        const total = saleDetailRows.reduce((acc, row) => {
+            // if (row.productName) {
+            //     return acc + row.total;
+            // }
+            return acc + row.total;
         }, 0);
         setProductPricesTotal(total);
     };
@@ -302,27 +322,26 @@ const UpdateSale = () => {
 
 
 
-
     useEffect(() => {
-        // Ensure that the transactionDetailRows state is in sync with Formik's values
-        setTransactionDetailRows(formik.values.transactionDetails);
+        // Ensure that the saleDetailRows state is in sync with Formik's values
+        setSaleDetailRows(formik.values.transactionDetails);
     }, [formik.values.transactionDetails]);
 
 
-    const fetchCustomer = (option) => {
+    const fetchCustomers = (option) => {
         fetchCustomersByStoreId(option.value)
             .then((data) => {
                 if (data && data.length < 1) {
-                    toast.error('No partner found');
+                    toast.error('No customer found for this store');
                 } else {
-                    const options = data.map((partner) => ({
-                        id: partner.id,
-                        value: partner.id,
-                        label: partner.name + " - " + partner.phone,
+                    const options = data.map((customer) => ({
+                        id: customer.id,
+                        value: customer.id,
+                        label: customer.name + " - " + customer.phone,
                     }));
 
-                    formik.setFieldValue("partner", null)
-                    setSupplierOptions(options);
+                    formik.setFieldValue("customer", null)
+                    setCustomerOptions(options);
                 }
             })
             .catch((err) => {
@@ -357,57 +376,30 @@ const UpdateSale = () => {
     };
 
 
+    const fetchStockByStore = (option) => {
+        getStocksByStore(option.value)
+            .then((data) => {
+                if (data && data.length < 1) {
+                    toast.error('This store is out of stock!');
+                } else {
+                    const options = data.map((item) => ({
+                        id: item.product.id,
+                        value: item.product.id,
+                        label: `${item.product.name} (${item.product.category.name}) ${item.product.size}`
+                    }));
+                    setStockSuggestions(options);
+                    setStockInfo(data);
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         formik.setFieldValue(name, value);
     };
-
-
-
-    const fetchProductSuggestions = async (productName, index) => {
-        if (productName.length < 1) {
-            // Fetch only if the input is at least 1 characters long
-            setProductSuggestions(prev => ({ ...prev, [index]: [] }));
-            return;
-        }
-
-        try {
-            const suggestions = await searchProducts(productName, 0, 5);
-            // setProductSuggestions(suggestions.content);
-            setProductSuggestions(prev => ({ ...prev, [index]: suggestions.content }));
-        } catch (error) {
-            console.error('Error fetching product suggestions:', error);
-            toast.error('Failed to fetch product suggestions.', {
-                position: 'bottom-center',
-                theme: 'dark',
-            });
-        }
-    };
-
-
-
-    const handleSuggestionClick = (suggestion, index) => {
-        const newRows = [...formik.values.transactionDetails];
-        newRows[index] = {
-            ...newRows[index],
-            productName: suggestion.name,
-            size: suggestion.size,
-            category: suggestion.category.name,
-            dbImage: suggestion.image,
-            newImage: null
-        };
-        formik.setFieldValue('transactionDetails', newRows);
-        setProductSuggestions(prev => ({ ...prev, [index]: [] })); // Clear suggestions for this row
-    };
-
-
-    const handleProductSuggestionBlur = () => {
-        setTimeout(() => {
-            setProductSuggestions({})
-        }, 500)
-    }
-
-
 
     if (poNotFound) {
         return <Page404></Page404>
@@ -417,7 +409,6 @@ const UpdateSale = () => {
     if (isUpdatedPurchase || unauthorizedAccess) {
         return (<ViewSaleDetails purchaseInfoFromViewPage={transaction}></ViewSaleDetails>)
     }
-
 
 
     return (
@@ -435,7 +426,7 @@ const UpdateSale = () => {
 
             <CCard>
                 <CCardHeader>
-                    <h4>Editing Purchase Order - {transaction && transaction.transactionNumber}</h4>
+                    <h4 className='display-6'>Editing Sales Order : {transaction && transaction.transactionNumber}</h4>
                 </CCardHeader>
                 <CCardBody>
                     <form onSubmit={formik.handleSubmit} className="row">
@@ -449,7 +440,13 @@ const UpdateSale = () => {
                                 value={formik.values.store}
                                 onChange={(option) => {
                                     formik.setFieldValue('store', option);
-                                    fetchCustomer(option);
+                                    formik.setFieldValue('transactionDetails',[]);
+                                    createFirstRow();
+                                    setStockSuggestions([]);
+                                    setStockInfo([]);
+                                    setSaleDetailRows([])
+                                    fetchCustomers(option);
+                                    fetchStockByStore(option);
                                 }}
                                 onBlur={formik.handleBlur}
                                 classNamePrefix="react-select"
@@ -465,53 +462,52 @@ const UpdateSale = () => {
                             )}
                         </div>
 
-                        {/* customer Field */}
+                        {/* Customer Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="partner">Customer</CFormLabel>
+                            <CFormLabel htmlFor="customer">Customer</CFormLabel>
                             <Select
                                 isDisabled={!formik.values.store} // Disable if store is not selected
-                                id="partner"
-                                name="partner"
-                                options={supplierOptions}
-                                value={formik.values.partner}
-                                onChange={(option) => formik.setFieldValue('partner', option)}
+                                id="customer"
+                                name="customer"
+                                options={customerOptions}
+                                value={formik.values.customer}
+                                onChange={(option) => formik.setFieldValue('customer', option)}
                                 onBlur={formik.handleBlur}
                                 classNamePrefix="react-select"
                                 className={
-                                    formik.touched.partner && formik.errors.partner
+                                    formik.touched.customer && formik.errors.customer
                                         ? 'is-invalid'
                                         : ''
                                 }
                             />
-                            {formik.touched.partner && formik.errors.partner && (
+                            {formik.touched.customer && formik.errors.customer && (
                                 <div className="text-danger mt-1">
-                                    {formik.errors.partner}
+                                    {formik.errors.customer}
                                 </div>
                             )}
                         </div>
 
-                        {/* Purchase Date Field */}
+                        {/* Sale Date Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="transactionDate">Purchase Date</CFormLabel>
+                            <CFormLabel htmlFor="saleDate">Sale Date</CFormLabel>
                             <input
                                 type="date"
-                                className={`form-control ${formik.touched.transactionDate && formik.errors.transactionDate
+                                className={`form-control ${formik.touched.saleDate && formik.errors.saleDate
                                     ? 'is-invalid'
                                     : ''
                                     }`}
-                                id="transactionDate"
-                                name="transactionDate"
-                                value={formik.values.transactionDate}
+                                id="saleDate"
+                                name="saleDate"
+                                value={formik.values.saleDate}
                                 onChange={handleChange}
                                 onBlur={formik.handleBlur}
                             />
-                            {formik.touched.transactionDate && formik.errors.transactionDate && (
+                            {formik.touched.saleDate && formik.errors.saleDate && (
                                 <div className="text-danger mt-1">
-                                    {formik.errors.transactionDate}
+                                    {formik.errors.saleDate}
                                 </div>
                             )}
                         </div>
-
 
                         {/* Purchase Status Field */}
                         <div className="form-group col-md-6 mb-3">
@@ -540,22 +536,13 @@ const UpdateSale = () => {
                         </div>
 
 
-
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="transactionDate">Grand Total</CFormLabel>
+                            <CFormLabel htmlFor="saleDate">Grand Total</CFormLabel>
                             <div>
                                 =<span style={{ fontWeight: "bold" }}>{grandTotal}</span> TK
                             </div>
 
                         </div>
-
-                        {transaction && transaction.transactionStatus === "REJECTED" &&
-                            <div className="form-group col-md-6 mb-3" style={{backgroundColor:"#fe08082b"}}>                                
-                                <b>Rejected By: </b>{transaction.rejectedBy.name} <br></br>
-                                <b>Rejected Date:</b> {formatDate(transaction.rejectedDate)} <br></br>
-                                <b>Reason : </b>{transaction.rejectedNote}
-                            </div>
-                        }
 
 
                         {/* Remark Field */}
@@ -584,21 +571,20 @@ const UpdateSale = () => {
 
                         <hr />
 
-                        <h4>Purchase Details</h4>
+                        <h4>Sale Details</h4>
 
                         {formik.errors.transactionDetails && formik.touched.transactionDetails ? (
                             <div style={{ color: 'red' }}>{formik.errors.transactionDetails.length == 40 && formik.errors.transactionDetails}</div>
-                        ) : null}
+                        ) : null }
 
                         <div>
-                            <table className="table transaction-details">
+                            <table className="table purchase-details">
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>
-                                        <th scope="col">Image</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Size</th>
-                                        <th scope="col">Category</th>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Stock Qty</th>
+                                        <th scope="col">Remain Stock</th>
                                         <th scope="col">Unit Price</th>
                                         <th scope="col">Quantity</th>
                                         <th scope="col">Total</th>
@@ -609,83 +595,35 @@ const UpdateSale = () => {
                                     {formik.values.transactionDetails.map((row, index) => (
                                         <tr key={index}>
                                             <td>{index + 1}</td>
-                                            <td className='product-table-image-container'>
-                                                <div className='product-table-image-selection'>
-                                                    <input
-                                                        type='file'
-                                                        onChange={e => { handleRowChange(index, 'newImage', e.target.files[0]) }}
-                                                    />
-                                                    <CIcon icon={cilCamera} className='product-table-image-selection-icon' />
-                                                </div>
-                                                <img
-                                                    className='product-table-image'
-                                                    src={row.newImage
-                                                        ? URL.createObjectURL(row.newImage)
-                                                        : BASE_URL + row.dbImage}
+                                            <td>
+                                                <Select
+                                                    options={stockSuggestions}
+                                                    value={stockSuggestions.find(opt => opt.value === row.product)}
+                                                    onChange={(option) => {
+                                                        formik.setFieldValue(`transactionDetails[${index}].product`, option.value);
+                                                        handleRowChange(index, 'product', option.value);
+                                                    }}
+                                                    classNamePrefix="react-select"
+                                                    className='product-selection'
                                                 />
-                                                {formik.touched.transactionDetails?.[index]?.newImage && formik.errors.transactionDetails?.[index]?.newImage && (
-                                                    <div className="text-danger">{formik.errors.transactionDetails[index].newImage}</div>
-                                                )}
-                                            </td>
-                                            <td className='input-suggestable'>
-                                                <input
-                                                    type="text"
-                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.productName && formik.errors.transactionDetails?.[index]?.productName ? 'is-invalid' : ''}`}
-                                                    value={row.productName}
-                                                    onChange={e => { handleRowChange(index, 'productName', e.target.value) }}
-                                                    onFocus={e => { handleRowChange(index, 'productName', e.target.value) }}
-                                                    onBlur={() => handleProductSuggestionBlur()}
-                                                    placeholder="Enter product name"
-                                                />
-
-                                                {productSuggestions[index] && productSuggestions[index].length > 0 && (
-                                                    <ul className='input-suggestions'>
-                                                        {productSuggestions[index].map((suggestion) => (
-                                                            <li key={suggestion.id} onClick={() => handleSuggestionClick(suggestion, index)}>
-                                                                {suggestion.name} - {suggestion.size} - {suggestion.category.name}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-
-                                                {formik.touched.transactionDetails?.[index]?.productName && formik.errors.transactionDetails?.[index]?.productName && (
-                                                    <div className="text-danger">{formik.errors.transactionDetails[index].productName}</div>
+                                                {formik.touched.transactionDetails?.[index]?.product && formik.errors.transactionDetails?.[index]?.product && (
+                                                    <div className="text-danger">{formik.errors.transactionDetails[index].product}</div>
                                                 )}
                                             </td>
                                             <td>
-                                                <input
-                                                    type="text"
-                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.size && formik.errors.transactionDetails?.[index]?.size ? 'is-invalid' : ''}`}
-                                                    value={row.size}
-                                                    onChange={e => handleRowChange(index, 'size', e.target.value)}
-                                                    placeholder="Enter size"
-                                                />
-                                                {formik.touched.transactionDetails?.[index]?.size && formik.errors.transactionDetails?.[index]?.size && (
-                                                    <div className="text-danger">{formik.errors.transactionDetails[index].size}</div>
-                                                )}
+                                                {row.product ? getStockQtyByProduct(row.product) : 0}
+                                            </td>
+                                            <td>
+                                                {row.product ? getRemainingStockByProductId(row.product) : 0}
                                             </td>
                                             <td>
                                                 <input
-                                                    type="text"
-                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.category && formik.errors.transactionDetails?.[index]?.category ? 'is-invalid' : ''}`}
-                                                    value={row.category}
-                                                    onChange={e => handleRowChange(index, 'category', e.target.value)}
-                                                    placeholder="Enter category"
+                                                    type="number"
+                                                    className={`form-control ${formik.touched.transactionDetails?.[index]?.price && formik.errors.transactionDetails?.[index]?.price ? 'is-invalid' : ''}`}
+                                                    value={row.price}
+                                                    onChange={e => handleRowChange(index, 'price', parseFloat(e.target.value) || 0)}
+                                                    placeholder="Enter price"
                                                 />
-                                                {formik.touched.transactionDetails?.[index]?.category && formik.errors.transactionDetails?.[index]?.category && (
-                                                    <div className="text-danger">{formik.errors.transactionDetails[index].category}</div>
-                                                )}
-                                            </td>
-                                            <td>
-                                                <div style={{ display: "flex", alignItems: "center" }}>
-                                                    <input
-                                                        type="number"
-                                                        className={`form-control ${formik.touched.transactionDetails?.[index]?.price && formik.errors.transactionDetails?.[index]?.price ? 'is-invalid' : ''}`}
-                                                        value={row.price}
-                                                        onChange={e => handleRowChange(index, 'price', parseFloat(e.target.value) || 0)}
-                                                        placeholder="Enter price"
-                                                    /> <span style={{ marginLeft: "7px" }}>TK</span>
-                                                </div>
                                                 {formik.touched.transactionDetails?.[index]?.price && formik.errors.transactionDetails?.[index]?.price && (
                                                     <div className="text-danger">{formik.errors.transactionDetails[index].price}</div>
                                                 )}
@@ -714,7 +652,6 @@ const UpdateSale = () => {
                                             </td>
                                         </tr>
                                     ))}
-
                                 </tbody>
                             </table>
                             <CButton

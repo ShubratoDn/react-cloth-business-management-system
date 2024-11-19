@@ -293,7 +293,7 @@ const SaleHistory = () => {
                         </div>
 
                         <div className="form-group col-12">
-                            <button type='button' className='btn btn-primary' onClick={() => store ? getPurchaseDetails() : setMessage({ error: "Select any store first" })}>Search</button>
+                            <button type='button' className='btn btn-primary' onClick={() => (store || soNumber) ? getPurchaseDetails() : setMessage({ error: "Select any store first" })}>Search</button>
                         </div>
                     </form>
                 </CCardBody>

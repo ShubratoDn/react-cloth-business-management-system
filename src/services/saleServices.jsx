@@ -4,6 +4,10 @@ export const addSale = async (values) => {
     return await axiosRequest.post(`/sales`, values).then((resp) => resp.data)
 }
 
+export const updateSaleOrder = async (values) => {
+    return await axiosRequest.put(`/sales`, values).then((resp) => resp.data)
+}
+
 
 export const searchSale = async (storeId, supplierId, poNumber, status, fromDate, toDate, page, size) => {
     return await axiosRequest.get(`/sales/search`, {
