@@ -124,13 +124,14 @@ const UpdateSale = () => {
 
             // Handle sale Details
             saleDetailRows.forEach((row, index) => {
+                formData.append(`transactionDetails[${index}].id`, row.id);
                 formData.append(`transactionDetails[${index}].product.id`, row.product);
                 formData.append(`transactionDetails[${index}].price`, row.price);
                 formData.append(`transactionDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
                 formData.append(`transactionDetails[${index}].total`, row.total);
             });
 
-            updateSaleOrder(formData)
+            updateSaleOrder(id, transactionNumber, formData)
                 .then((response) => {
                     toast.success("Sale order (" + response.transactionNumber + ") has been created successfully.", {
                         position: 'bottom-center',
