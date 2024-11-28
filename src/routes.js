@@ -23,6 +23,7 @@ import CreateSale from 'views/salesManagement/CreateSale'
 import SellHistory from 'views/salesManagement/SaleHistory'
 import ViewSaleDetails from 'views/salesManagement/ViewSaleDetails'
 import UpdateSale from 'views/salesManagement/UpdateSale'
+import UpdateSaleStatus from 'views/salesManagement/UpdateSaleStatus'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -136,6 +137,7 @@ const routes = [
       { path: '/sales/sale-history', name: "Sell History", element: SellHistory},
       { path: '/procurement/view-sale-details/:id/:transactionNumber', name: "View Sale details", element: ViewSaleDetails},
       { path: '/procurement/edit-sale-details/:id/:transactionNumber', name: "Edit Sale details", element: UpdateSale},
+      { path: '/procurement/update-sale-status/:id/:transactionNumber', name: "Update Sale status", element: UpdateSaleStatus},
       // PROCUREMENT & SALES ENDS
 
 

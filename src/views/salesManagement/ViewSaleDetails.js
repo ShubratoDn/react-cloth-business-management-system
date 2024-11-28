@@ -39,13 +39,12 @@ const ViewSaleDetails = ({ saleInfoFromViewPage, transactionDetails, isRequestFo
                 setLoading(true)
                 findPurchaseByIdAndPO(id, transactionNumber)
                     .then((data) => {
-                        console.log(data)
                         if ((getCurrentUserInfo().id === data.processedBy.id) || userHasRole("ROLE_SALE_GET")) {
                             data && setSale(data)
                         }
                     })
                     .catch((err) => {
-                        console.log(err);
+                        console.error(err);
                     })
                     .finally(() => {
                         setLoading(false)
@@ -79,7 +78,8 @@ const ViewSaleDetails = ({ saleInfoFromViewPage, transactionDetails, isRequestFo
                 navigate(`/procurement/view-sale-details/${id}/${transactionNumber}`)
             })
             .catch((err) => {
-                console.log(err)
+                console.error(err)
+                toast.error(err.response.data.message)
             })
             .finally(() => {
 
@@ -300,7 +300,7 @@ const ViewSaleDetails = ({ saleInfoFromViewPage, transactionDetails, isRequestFo
             {/* Reject Reason Modal */}
             <CModal visible={showRejectModal} onClose={() => setShowRejectModal(false)}>
                 <CModalHeader closeButton>
-                    <CModalTitle>Reject Purchase Order</CModalTitle>
+                    <CModalTitle>Reject Sale Order</CModalTitle>
                 </CModalHeader>
                 <CModalBody>
                     <label>Please provide a reason for rejection:</label>
@@ -317,7 +317,7 @@ const ViewSaleDetails = ({ saleInfoFromViewPage, transactionDetails, isRequestFo
                         Cancel
                     </CButton>
                     <CButton className='btn btn-danger' onClick={handleRejectSubmit} disabled={!rejectedNote.trim()}>
-                        Reject Purchase
+                        Reject Sale
                     </CButton>
                 </CModalFooter>
             </CModal>

@@ -8,6 +8,9 @@ export const updateSaleOrder = async (id, transactionNumber, values) => {
     return await axiosRequest.put(`/sales/${id}/${transactionNumber}`, values).then((resp) => resp.data)
 }
 
+export const updateSaleStatus = async (requestBody) => {
+    return await axiosRequest.put(`/sales/update-purchase-status`, requestBody).then((resp) => resp.data)
+}
 
 export const searchSale = async (storeId, supplierId, poNumber, status, fromDate, toDate, page, size) => {
     return await axiosRequest.get(`/sales/search`, {

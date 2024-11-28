@@ -20,6 +20,7 @@ import { useParams } from 'react-router-dom';
 import { findPurchaseByIdAndPO } from 'services/purchaseServices';
 import Page404 from 'views/pages/page404/Page404';
 import ViewSaleDetails from './ViewSaleDetails';
+import { formatDate } from 'services/utils';
 
 const UpdateSale = () => {
 
@@ -541,6 +542,14 @@ const UpdateSale = () => {
                             </div>
 
                         </div>
+
+                        {transaction && transaction.transactionStatus === "REJECTED" &&
+                            <div className="form-group col-md-6 mb-3" style={{backgroundColor:"#fe08082b"}}>                                
+                                <b>Rejected By: </b>{transaction.rejectedBy.name} <br></br>
+                                <b>Rejected Date:</b> {formatDate(transaction.rejectedDate)} <br></br>
+                                <b>Reason : </b>{transaction.rejectedNote}
+                            </div>
+                        }
 
 
                         {/* Remark Field */}
