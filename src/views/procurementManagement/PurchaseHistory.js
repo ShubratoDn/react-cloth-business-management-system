@@ -366,7 +366,7 @@ const PurchaseHistory = () => {
                                                 }
                                                 
                                                 {
-                                                    (details.transactionStatus !== "OPEN" && details.transactionStatus !== "REJECTED") &&<Link to={`/procurement/update-purchase-status/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Update Status </Link>
+                                                    (details.transactionStatus !== "OPEN" && details.transactionStatus !== "REJECTED" && details.transactionStatus !== "CLOSED") &&<Link to={`/procurement/update-purchase-status/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Update Status </Link>
                                                 }
                                                 
                                             </td>

@@ -40,7 +40,7 @@ const ViewSaleDetails = ({ saleInfoFromViewPage, transactionDetails, isRequestFo
                 findPurchaseByIdAndPO(id, transactionNumber)
                     .then((data) => {
                         console.log(data)
-                        if ((getCurrentUserInfo().id === data.processedBy.id) || userHasRole("ROLE_PURCHASE_GET")) {
+                        if ((getCurrentUserInfo().id === data.processedBy.id) || userHasRole("ROLE_SALE_GET")) {
                             data && setSale(data)
                         }
                     })

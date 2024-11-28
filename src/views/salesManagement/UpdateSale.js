@@ -25,12 +25,7 @@ const UpdateSale = () => {
 
     const [poNotFound, setPOnotFound] = useState(false);
     const [unauthorizedAccess, setUnauthorizedAccess] = useState(false);
-    const [isUpdatedPurchase, setUpdatedPurchase] = useState(false);
-
-    const [supplierOptions, setSupplierOptions] = useState([]);
-    const [transactionDetailRows, setTransactionDetailRows] = useState([{ id: '', productName: '', size: '', category: '', price: '', quantity: '', total: 0, dbImage: '', newImage: null }]);
-
-    const [productSuggestions, setProductSuggestions] = useState({});
+    const [isUpdatedSale, setUpdatedSale] = useState(false);
 
     const [transaction, setTransaction] = useState(null);
     const { id, transactionNumber } = useParams();
@@ -124,15 +119,16 @@ const UpdateSale = () => {
 
             // Handle sale Details
             saleDetailRows.forEach((row, index) => {
+                row.id && formData.append(`transactionDetails[${index}].id`, row.id);
                 formData.append(`transactionDetails[${index}].product.id`, row.product);
                 formData.append(`transactionDetails[${index}].price`, row.price);
                 formData.append(`transactionDetails[${index}].quantity`, row.quantity ? row.quantity : 0);
                 formData.append(`transactionDetails[${index}].total`, row.total);
             });
 
-            updateSaleOrder(formData)
+            updateSaleOrder(id, transactionNumber, formData)
                 .then((response) => {
-                    toast.success("Sale order (" + response.transactionNumber + ") has been created successfully.", {
+                    toast.success("Sale order (" + response.transactionNumber + ") has been updated successfully.", {
                         position: 'bottom-center',
                         theme: 'dark',
                     });
@@ -140,6 +136,7 @@ const UpdateSale = () => {
                     resetForm();
                     setSaleDetailRows([{ product: '', price: '', quantity: '', total: 0, dbImage: '' }]);
                     setGrandTotal(0);
+                    setUpdatedSale(true);
                 })
                 .catch((err) => {
                     console.error(err);
@@ -182,7 +179,7 @@ const UpdateSale = () => {
                         position: "bottom-center",
                         theme: "dark",
                     })
-                }else if (data && ((data.transactionStatus === "OPEN" || data.transactionStatus === "REJECTED") && (getCurrentUserInfo().id === data.processedBy.id || userHasRole("ROLE_PURCHASE_UPDATE")))) {
+                }else if (data && (data.transactionType === "SALE" && (data.transactionStatus === "OPEN" || data.transactionStatus === "REJECTED") && (getCurrentUserInfo().id === data.processedBy.id || userHasRole("ROLE_SALE_UPDATE")))) {
                     setTransaction(data);
 
                     setDiscount(data.discountAmount);
@@ -229,7 +226,7 @@ const UpdateSale = () => {
                     calculateProductPricesTotal(dbSaleDetails);
                 } else {
                     setUnauthorizedAccess(true)
-                    toast.error("Purchase Order is not editable", {
+                    toast.error("Sale Order is not editable", {
                         position: "bottom-center",
                         theme: "dark",
                     })
@@ -406,8 +403,8 @@ const UpdateSale = () => {
     }
 
 
-    if (isUpdatedPurchase || unauthorizedAccess) {
-        return (<ViewSaleDetails purchaseInfoFromViewPage={transaction}></ViewSaleDetails>)
+    if (isUpdatedSale || unauthorizedAccess) {
+        return (<ViewSaleDetails saleInfoFromViewPage={transaction}></ViewSaleDetails>)
     }
 
 
@@ -511,7 +508,7 @@ const UpdateSale = () => {
 
                         {/* Purchase Status Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="transactionStatus">Purchase Status</CFormLabel>
+                            <CFormLabel htmlFor="transactionStatus">Sale Status</CFormLabel>
                             <select
                                 className={`form-control ${formik.touched.transactionStatus && formik.errors.transactionStatus
                                     ? 'is-invalid'

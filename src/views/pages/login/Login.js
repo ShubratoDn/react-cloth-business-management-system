@@ -53,6 +53,7 @@ const Login = () => {
                     return;
                 }
 
+                // console.error(err)
                 setErrorMessage(err.response.data.message);
             })
             .finally(() => {

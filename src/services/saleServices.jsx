@@ -4,8 +4,8 @@ export const addSale = async (values) => {
     return await axiosRequest.post(`/sales`, values).then((resp) => resp.data)
 }
 
-export const updateSaleOrder = async (values) => {
-    return await axiosRequest.put(`/sales`, values).then((resp) => resp.data)
+export const updateSaleOrder = async (id, transactionNumber, values) => {
+    return await axiosRequest.put(`/sales/${id}/${transactionNumber}`, values).then((resp) => resp.data)
 }
 
 
