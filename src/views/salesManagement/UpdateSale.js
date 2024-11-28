@@ -127,6 +127,7 @@ const UpdateSale = () => {
             });
 
             updateSaleOrder(id, transactionNumber, formData)
+            updateSaleOrder(id, transactionNumber, formData)
                 .then((response) => {
                     toast.success("Sale order (" + response.transactionNumber + ") has been updated successfully.", {
                         position: 'bottom-center',
