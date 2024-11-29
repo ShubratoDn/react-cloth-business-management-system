@@ -8,6 +8,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getCurrentUserInfo, userHasRole } from 'services/auth';
 import { downloadPurchaseReport, findPurchaseByIdAndPO, generatePOPdf, updatePurchaseStatus } from 'services/purchaseServices';
+import { updateSaleStatus } from 'services/saleServices';
 import { formatDate } from 'services/utils';
 import Page404 from 'views/pages/page404/Page404';
 
@@ -69,7 +70,7 @@ const ViewSaleDetails = ({ saleInfoFromViewPage, transactionDetails, isRequestFo
         };
 
 
-        updatePurchaseStatus(requestBody)
+        updateSaleStatus(requestBody)
             .then((data) => {
                 toast.success("Sale Order (" + transactionNumber + ") status updated !!", {
                     position: "bottom-center",

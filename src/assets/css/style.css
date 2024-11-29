@@ -203,3 +203,12 @@ table.purchase-details input{
     min-width: 300px !important;
     width: 400px;
 }
+
+.avatar-img{
+    /* width: 40px !important;
+    height: 40px !important; */
+    /* object-fit: cover; */
+
+    aspect-ratio: 3/3;
+    object-fit: cover;
+}
