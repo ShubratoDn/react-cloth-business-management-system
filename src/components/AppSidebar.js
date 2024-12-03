@@ -40,7 +40,7 @@ const AppSidebar = () => {
             }}
         >
             <CSidebarHeader className="border-bottom">
-                <CSidebarBrand to="/">
+                <CSidebarBrand href="/">
                     <CImage src={logo} size="md" className="sidebar-brand-full img-fluid"/>
                     <CAvatar src={logoSingle} size="md" className="sidebar-brand-narrow"  height={32} />                    
                 </CSidebarBrand>

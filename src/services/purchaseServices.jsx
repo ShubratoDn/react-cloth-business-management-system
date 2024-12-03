@@ -30,6 +30,24 @@ export const searchPurchase = async (storeId, supplierId, poNumber, status, from
     }).then((resp) => resp.data)
 }
 
+
+export const searchTransaction = async (storeId, supplierId, poNumber, status, fromDate, toDate, type, page, size) => {
+    return await axiosRequest.get(`/transactions/search`, {
+        params: {
+            storeId: storeId || '',  // Default to empty string if undefined
+            supplierId: supplierId || '',
+            poNumber: poNumber || '',
+            status: status || '',
+            fromDate: fromDate || '',
+            toDate: toDate || '',
+            type: type || '',
+            page: page || 0,         // Default to 0 if page is not provided
+            size: size || 10         // Default to 10 if size is not provided
+        }
+    }).then((resp) => resp.data)
+}
+
+
 export const findPurchaseByIdAndPO = async (id, po) => {
     return await axiosRequest.get(`/purchases/${id}/${po}`).then((resp) => resp.data)
 }

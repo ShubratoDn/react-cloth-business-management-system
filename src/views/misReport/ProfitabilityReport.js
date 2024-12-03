@@ -1,41 +1,39 @@
 import { CButton, CCard, CCardBody, CCardHeader, CFormLabel, CModal, CModalBody, CModalHeader } from '@coreui/react';
-import { BASE_URL } from 'configs/axiosConfig';
 import React, { useEffect, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { toast } from 'react-toastify';
-import { searchProducts } from 'services/productServices';
 import Select from 'react-select';
-import { fetchSuppliersByStoreId } from 'services/stakeholderServices';
-import { getCurrentUserInfo, getLoggedInUsersAssignedStore, userHasRole } from 'services/auth';
-import { searchPurchase } from 'services/purchaseServices';
-import ViewPurchaseDetails from './ViewPurchaseDetails';
-import { Link, useNavigate } from 'react-router-dom';
+import { fetchAllStakeholder } from 'services/stakeholderServices';
+import { getLoggedInUsersAssignedStore} from 'services/auth';
+import { searchPurchase, searchTransaction } from 'services/purchaseServices';
+import ViewPurchaseDetails from 'views/procurementManagement/ViewPurchaseDetails';
+import ViewSaleDetails from 'views/salesManagement/ViewSaleDetails';
 
 const PurchaseHistory = () => {
 
     const [store, setStore] = useState(null);
-    const [supplier, setSupplier] = useState(null);
-    const [poNumber, setPoNumber] = useState('');
-    const [status, setStatus] = useState('');
+    const [stakeholder, setStakeholder] = useState(null);
+    const [status, setStatus] = useState('');    
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
 
 
     const [storeOptions, setStoreOptions] = useState([]);
-    const [supplierOptions, setSupplierOptions] = useState([]);
+    const [stakeholderOptions, setStakeholderOptions] = useState([]);
 
     const [isLoading, setLoading] = useState(false);
     const [message, setMessage] = useState({});
+
     const [content, setContent] = useState([]);
     const [data, setData] = useState(null);
     const [page, setPage] = useState(0);
 
 
     const [modalVisible, setModalVisible] = useState(false);
-    const [selectedPurchase, setSelectedPurchase] = useState(null);
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
 
     const handleViewClick = (details) => {
-        setSelectedPurchase(details); // Set the selected purchase
+        setSelectedTransaction(details); // Set the selected purchase
         setModalVisible(true); // Show the modal
     };
 
@@ -44,12 +42,8 @@ const PurchaseHistory = () => {
             setStore(value)
         }
 
-        if (field === 'supplier') {
-            setSupplier(value)
-        }
-
-        if (field === 'poNumber') {
-            setPoNumber(value)
+        if (field === 'stakeholder') {
+            setStakeholder(value)
         }
 
         if (field === 'fromDate') {
@@ -70,9 +64,9 @@ const PurchaseHistory = () => {
         setLoading(true);
         setMessage({})
         let storeId = store && store.id;
-        let supplierId = supplier && supplier.id;
+        let stakeholderId = stakeholder && stakeholder.id;
 
-        searchPurchase(storeId, supplierId, poNumber, status, fromDate, toDate, page, 10)
+        searchTransaction(storeId, stakeholderId, "", status, fromDate, toDate, "", page, 10)
             .then((response) => {
                 setData(response);
                 if (page === 0) {
@@ -110,7 +104,7 @@ const PurchaseHistory = () => {
         if (store) {
             getPurchaseDetails();
         }
-    }, [page, store, supplier, poNumber, fromDate, toDate, status]); // Trigger the effect on page or query change
+    }, [page, store, stakeholder, fromDate, toDate, status]); // Trigger the effect on page or query change
 
     const requestForData = () => {
         setPage((prevPage) => prevPage + 1);
@@ -133,26 +127,26 @@ const PurchaseHistory = () => {
     }, []);
 
     useEffect(() => {
-        setSupplierOptions([])
-        setSupplier(null)
+        setStakeholderOptions([])
+        setStakeholder(null)
     }, [store])
 
-    const fetchSuppliers = (option) => {
-        fetchSuppliersByStoreId(option.value)
+    const fetchStakeholders = (option) => {
+        fetchAllStakeholder(option.value)
             .then((data) => {
                 if (data && data.length < 1) {
-                    toast.error('No supplier found');
+                    toast.error('No stakeholder found');
                 } else {
-                    const options = data.map((supplier) => ({
-                        id: supplier.id,
-                        value: supplier.id,
-                        label: supplier.name + " - " + supplier.phone,
+                    const options = data.map((stakeholder) => ({
+                        id: stakeholder.id,
+                        value: stakeholder.id,
+                        label: stakeholder.name + " - " + stakeholder.phone + ` \t\t(${stakeholder.stakeHolderType})`,
                     }));
-                    setSupplierOptions(options);
+                    setStakeholderOptions(options);
                 }
             })
             .catch((err) => {
-                setSupplierOptions([]);
+                setStakeholderOptions([]);
 
                 if (err.code === 'ERR_NETWORK') {
                     toast.error('Network error! Failed to connect with server.', {
@@ -183,24 +177,11 @@ const PurchaseHistory = () => {
     };
 
 
-
-    const isPOEditabel = (details) => {
-        let status = details.transactionStatus
-        if (status === "OPEN" || status === "REJECTED") {
-            if ((getCurrentUserInfo().id === details.processedBy.id) || userHasRole("ROLE_PURCHASE_UPDATE")) {
-                return true;
-            }
-        }
-    }
-
-
-
-
     return (
         <>
             <CCard>
                 <CCardHeader>
-                    <h3>Search Purchase Details</h3>
+                    <h3>Profitability Report Criteria</h3>
                 </CCardHeader>
                 <CCardBody>
                     <form className='row'>
@@ -213,65 +194,33 @@ const PurchaseHistory = () => {
                                 value={store}
                                 onChange={(option) => {
                                     handleSearch('store', option);
-                                    fetchSuppliers(option);
+                                    fetchStakeholders(option);
                                 }}
                                 classNamePrefix="react-select"
                             />
                         </div>
 
-                        {/* Supplier Field */}
+                        {/* stakeholder Field */}
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">Supplier</CFormLabel>
+                            <CFormLabel htmlFor="stakeholder">Stakeholder</CFormLabel>
                             <Select
-                                isDisabled={!store} // Disable if store is not selected
-                                isClearable
-                                id="supplier"
-                                name="supplier"
-                                options={supplierOptions}
-                                value={supplier}
+                                isDisabled={!store}
+                                id="stakeholder"
+                                name="stakeholder"
+                                options={stakeholderOptions}
+                                value={stakeholder}
                                 onChange={(option) => {
-                                    handleSearch('supplier', option);
+                                    handleSearch('stakeholder', option);
                                 }}
+                                isClearable={true}
                                 classNamePrefix="react-select"
                             />
                         </div>
 
 
-
+                        
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">PO number</CFormLabel>
-                            <input
-                                type="text"
-                                className='form-control me-3'
-                                placeholder="Enter PO number"
-                                value={poNumber}
-                                onChange={e => handleSearch('poNumber', e.target.value)}
-                                onKeyUp={e => handleSearch('poNumber', e.target.value)}
-                            />
-                        </div>
-
-
-                        <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="status">Status</CFormLabel>
-                            <select
-                                id="status"
-                                className='form-control me-3'
-                                value={status}
-                                onChange={e => handleSearch('status', e.target.value)}
-                            >
-                                <option value=""> -- Select Status --</option>
-                                <option value="OPEN">OPEN</option>
-                                <option value="SUBMITTED">SUBMITTED</option>
-                                <option value="APPROVED">APPROVED</option>
-                                <option value="REJECTED">REJECTED</option>
-                                <option value="REJECTED_MODIFIED">REJECTED_MODIFIED</option>
-                                <option value="CLOSED">CLOSED</option>
-                            </select>
-                        </div>
-
-
-                        <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">From Date</CFormLabel>
+                            <CFormLabel htmlFor="stakeholder">From Date</CFormLabel>
                             <input
                                 type="date"
                                 className='form-control me-3'
@@ -283,7 +232,7 @@ const PurchaseHistory = () => {
 
 
                         <div className="form-group col-md-6 mb-3">
-                            <CFormLabel htmlFor="supplier">To Date</CFormLabel>
+                            <CFormLabel htmlFor="stakeholder">To Date</CFormLabel>
                             <input
                                 type="date"
                                 className='form-control me-3'
@@ -291,6 +240,26 @@ const PurchaseHistory = () => {
                                 value={toDate}
                                 onChange={e => handleSearch('toDate', e.target.value)}
                             />
+                        </div>
+
+
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="status">Status</CFormLabel>
+                            <select
+                                id="status"
+                                className='form-control me-3'
+                                // multiple
+                                value={status}
+                                onChange={e => handleSearch('status', e.target.value)}
+                            >
+                                <option value=""> -- Select Status --</option>
+                                <option value="OPEN">OPEN</option>
+                                <option value="SUBMITTED">SUBMITTED</option>
+                                <option value="APPROVED">APPROVED</option>
+                                <option value="REJECTED">REJECTED</option>
+                                <option value="REJECTED_MODIFIED">REJECTED_MODIFIED</option>
+                                <option value="CLOSED">CLOSED</option>
+                            </select>
                         </div>
 
                         <div className="form-group col-12">
@@ -331,7 +300,7 @@ const PurchaseHistory = () => {
                                     <th>PO Number</th>
                                     <th>Type</th>
                                     <th scope="col">Store</th>
-                                    <th scope="col">Supplier</th>
+                                    <th scope="col">stakeholder</th>
                                     <th scope="col">Purchase Date</th>
                                     <th scope="col">Amount</th>
                                     <th scope="col">Created by</th>
@@ -360,16 +329,6 @@ const PurchaseHistory = () => {
                                                 >
                                                     View
                                                 </button>
-
-                                                {
-                                                    isPOEditabel(details) && 
-                                                    <Link to={`/procurement/edit-purchase-details/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Edit </Link>
-                                                }
-                                                
-                                                {
-                                                    (details.transactionStatus !== "OPEN" && details.transactionStatus !== "REJECTED" && details.transactionStatus !== "CLOSED") &&<Link to={`/procurement/update-purchase-status/${details.id}/${details.transactionNumber}`} className="btn btn-success btn-sm">Update Status </Link>
-                                                }
-                                                
                                             </td>
                                         </tr>
                                     ))
@@ -387,8 +346,8 @@ const PurchaseHistory = () => {
                     <h5>Purchase Details</h5>
                 </CModalHeader>
                 <CModalBody>
-                    {/* Pass the selectedPurchase as props to ViewPurchaseDetails */}
-                    {selectedPurchase && <ViewPurchaseDetails purchaseInfoFromViewPage={selectedPurchase} />}
+                    {/* Pass the selectedTransaction as props to ViewPurchaseDetails */}
+                    {selectedTransaction && selectedTransaction.transactionType === "PURCHASE" ? <ViewPurchaseDetails purchaseInfoFromViewPage={selectedTransaction} /> : <ViewSaleDetails saleInfoFromViewPage={selectedTransaction} />}
                 </CModalBody>
                 <div className="modal-footer">
                     <CButton color="secondary" onClick={() => setModalVisible(false)}>

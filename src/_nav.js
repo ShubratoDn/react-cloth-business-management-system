@@ -10,10 +10,12 @@ import {
     cilChartPie,
     cilCursor,
     cilDescription,
+    cilDollar,
     cilDrop,
     cilHouse,
     cilLan,
     cilLockLocked,
+    cilMoney,
     cilNotes,
     cilPencil,
     cilPuzzle,
@@ -236,7 +238,7 @@ const _nav = [
         name: 'Procurement',
         to: '/procurement',
         icon: <CIcon icon={cilCart} customClassName="nav-icon" />,
-        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_PURCHASE_SEARCH", "ROLE_PURCHASE_GET", ],
+        roleRequired: ["ROLE_PURCHASE_CREATE", "ROLE_PURCHASE_SEARCH", "ROLE_PURCHASE_GET", "ROLE_SALE_CREATE", "ROLE_SALE_GET", "ROLE_SALE_SEARCH", ],
         items: [
             {
                 component: CNavItem,
@@ -275,6 +277,39 @@ const _nav = [
         ]
     },
     // PROCUREMENT AND SALES ENDS
+
+
+
+
+    //MIS REPORT
+    {
+        component: CNavTitle,
+        isTitle: true,
+        name: 'Mis report',
+        roleRequired: ["ROLE_REPORT_PROFITABILITY"],
+    },
+    {
+        component: CNavGroup,
+        name: 'Profit & Loss',
+        to: '/',
+        icon: <CIcon icon={cilDollar} customClassName="nav-icon" />,
+        roleRequired: ["ROLE_REPORT_PROFITABILITY", ],
+        items: [             
+            {
+                component: CNavItem,
+                name: 'Profitability Report',
+                to: '/mis/report/profitability',
+                roleRequired: "ROLE_REPORT_PROFITABILITY"
+            }
+        ]
+    },
+    //MIS REPORT ENDS
+
+
+
+
+
+
 
 
 

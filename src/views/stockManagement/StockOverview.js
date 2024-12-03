@@ -131,7 +131,7 @@ const StockOverview = () => {
                             />
                         </div>
                     </div>
-                    <button type="button" className='btn btn-success'>Search</button>
+                    <button type="button" onClick={getStockOverviewData} className='btn btn-success'>Search</button>
                 </div>
             </form>
 

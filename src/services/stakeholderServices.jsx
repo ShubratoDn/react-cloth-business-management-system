@@ -27,3 +27,7 @@ export const fetchSuppliersByStoreId = async (storeId) =>{
 export const fetchCustomersByStoreId = async (storeId) =>{
     return await axiosRequest.get(`/stakeholders/type/customer/store/${storeId}`).then((resp)=>resp.data)
 }
+
+export const fetchAllStakeholder = async (storeId) =>{
+    return await axiosRequest.get(`/stakeholders/store/${storeId}`).then((resp)=>resp.data)
+}

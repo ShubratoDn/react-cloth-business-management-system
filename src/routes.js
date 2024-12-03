@@ -24,6 +24,7 @@ import SellHistory from 'views/salesManagement/SaleHistory'
 import ViewSaleDetails from 'views/salesManagement/ViewSaleDetails'
 import UpdateSale from 'views/salesManagement/UpdateSale'
 import UpdateSaleStatus from 'views/salesManagement/UpdateSaleStatus'
+import ProfitabilityReport from 'views/misReport/ProfitabilityReport'
 
 
 const Logout = React.lazy(() => import('./views/auth/Logout'))
@@ -141,6 +142,11 @@ const routes = [
       // PROCUREMENT & SALES ENDS
 
 
+      //MIS REPORT
+      { path: '/mis/report', exact: true, name: "MIS REPORT", element: ProfitabilityReport},
+      { path: '/mis/report/profitability', name: 'Profitability Report', element: ProfitabilityReport},
+      //MIS REPORT
+    
   
 
 
