@@ -31,18 +31,19 @@ export const searchPurchase = async (storeId, supplierId, poNumber, status, from
 }
 
 
-export const searchTransaction = async (storeId, supplierId, poNumber, status, fromDate, toDate, type, page, size) => {
+export const searchTransaction = async (storeId, supplierId, poNumber, status, fromDate, toDate, type, page, size, sortBy) => {
     return await axiosRequest.get(`/transactions/search`, {
         params: {
             storeId: storeId || '',  // Default to empty string if undefined
             supplierId: supplierId || '',
             poNumber: poNumber || '',
-            status: status || '',
+            transactionStatus: status || '',
             fromDate: fromDate || '',
             toDate: toDate || '',
-            type: type || '',
-            page: page || 0,         // Default to 0 if page is not provided
-            size: size || 10         // Default to 10 if size is not provided
+            transactionType: type || '',
+            page: page || 0,         
+            size: size || 10,      
+            sortBy: sortBy || ''
         }
     }).then((resp) => resp.data)
 }

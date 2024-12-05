@@ -8,15 +8,21 @@ import { getLoggedInUsersAssignedStore} from 'services/auth';
 import { searchPurchase, searchTransaction } from 'services/purchaseServices';
 import ViewPurchaseDetails from 'views/procurementManagement/ViewPurchaseDetails';
 import ViewSaleDetails from 'views/salesManagement/ViewSaleDetails';
+import { formatDate } from 'services/utils';
+import CIcon from '@coreui/icons-react';
+import { cilPrint } from '@coreui/icons';
+import { downloadProfitabilityReport } from 'services/excelReportService';
 
 const PurchaseHistory = () => {
 
     const [store, setStore] = useState(null);
     const [stakeholder, setStakeholder] = useState(null);
     const [status, setStatus] = useState('');    
+    const [type, setType] = useState('');    
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
 
+    const [isDownloading, setDownloading] = useState(false);
 
     const [storeOptions, setStoreOptions] = useState([]);
     const [stakeholderOptions, setStakeholderOptions] = useState([]);
@@ -57,6 +63,11 @@ const PurchaseHistory = () => {
         if (field === 'status') {
             setStatus(value);
         }
+
+        if (field === 'type') {
+            setType(value);
+        }
+
         setPage(0);
     };
 
@@ -66,8 +77,9 @@ const PurchaseHistory = () => {
         let storeId = store && store.id;
         let stakeholderId = stakeholder && stakeholder.id;
 
-        searchTransaction(storeId, stakeholderId, "", status, fromDate, toDate, "", page, 10)
+        searchTransaction(storeId, stakeholderId, "", status, fromDate, toDate, type, page, 10, "transactionDate")
             .then((response) => {
+                console.log(response);
                 setData(response);
                 if (page === 0) {
                     setContent(response.content);
@@ -104,12 +116,33 @@ const PurchaseHistory = () => {
         if (store) {
             getPurchaseDetails();
         }
-    }, [page, store, stakeholder, fromDate, toDate, status]); // Trigger the effect on page or query change
+    }, [page, store, stakeholder, fromDate, toDate, status, type]); // Trigger the effect on page or query change
 
     const requestForData = () => {
         setPage((prevPage) => prevPage + 1);
     };
 
+
+
+    const handleDownloadExcel = async () => {
+        setDownloading(true);
+
+        let storeId = store && store.id;
+        let stakeholderId = stakeholder && stakeholder.id;
+
+        // setTimeout(()=>{
+        //     setDownloading(false);
+        // }, 2000)
+
+        try {
+            await downloadProfitabilityReport(storeId, stakeholderId, "", status, fromDate, toDate, type);
+        } catch (error) {
+            console.log(error)
+            alert('Could not download the report. Please try again.');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
 
 
@@ -262,6 +295,23 @@ const PurchaseHistory = () => {
                             </select>
                         </div>
 
+
+                        <div className="form-group col-md-6 mb-3">
+                            <CFormLabel htmlFor="type">Transaction Type</CFormLabel>
+                            <select
+                                id="type"
+                                className='form-control me-3'
+                                // multiple
+                                value={type}
+                                onChange={e => handleSearch('type', e.target.value)}
+                            >
+                                <option value=""> -- Select Type --</option>
+                                <option value="SALE">SALE</option>
+                                <option value="PURCHASE">PURCHASE</option>
+                            </select>
+                        </div>
+
+
                         <div className="form-group col-12">
                             <button type='button' className='btn btn-primary' onClick={() => store ? getPurchaseDetails() : setMessage({ error: "Select any store first" })}>Search</button>
                         </div>
@@ -283,7 +333,16 @@ const PurchaseHistory = () => {
 
             <CCard>
                 <CCardHeader>
-                    <h4>{"Purchase Details"}</h4>
+                    <div className='d-flex justify-content-between'>
+                        <h4>{"Transaction Details based on search criteria"}</h4> 
+                        {data && data.totalElements > 0 && 
+                                        <button className='btn btn-success d-flex justify-content-center align-items-center' onClick={handleDownloadExcel} disabled={isDownloading}>
+                                            <CIcon icon={cilPrint}></CIcon> &nbsp;
+                                            {isDownloading ? 'Downloading...' : 'PDF'}
+                                        </button> 
+                        }
+                    </div>
+                    {data && data.totalElements > 0 && <h6 className='text-muted'>Total Item found : {data.totalElements}</h6>}
                 </CCardHeader>
                 <CCardBody>
                     <InfiniteScroll
@@ -317,7 +376,7 @@ const PurchaseHistory = () => {
                                             <td>{details.transactionType}</td>
                                             <td>{details.store.storeName}</td>
                                             <td>{details.partner.name}</td>
-                                            <td>{details.transactionDate}</td>
+                                            <td>{formatDate(details.transactionDate)}</td>
                                             <td>{details.totalAmount}</td>
                                             <td>{details.processedBy.name}</td>
                                             <td>{details.transactionStatus}</td>
@@ -343,7 +402,7 @@ const PurchaseHistory = () => {
             {/* Modal for viewing purchase details */}
             <CModal visible={modalVisible} onClose={() => setModalVisible(false)} size='lg'>
                 <CModalHeader closeButton>
-                    <h5>Purchase Details</h5>
+                    <h5>Transaction Details</h5>
                 </CModalHeader>
                 <CModalBody>
                     {/* Pass the selectedTransaction as props to ViewPurchaseDetails */}

@@ -143,8 +143,8 @@ const routes = [
 
 
       //MIS REPORT
-      { path: '/mis/report', exact: true, name: "MIS REPORT", element: ProfitabilityReport},
-      { path: '/mis/report/profitability', name: 'Profitability Report', element: ProfitabilityReport},
+      { path: '/mis/report', exact: true, name: "MIS REPORT", element: ProfitabilityReport, roleRequired: ["ROLE_REPORT_PROFITABILITY"]},
+      { path: '/mis/report/profitability', name: 'Profitability Report', element: ProfitabilityReport, roleRequired: ["ROLE_REPORT_PROFITABILITY"]},
       //MIS REPORT
     
   
