@@ -14,12 +14,15 @@ export const downloadProfitabilityReport = async (storeId, supplierId, poNumber,
     });
 
     const fullUrl = `${baseUrl}?${queryParams.toString()}`;
-    console.log('Request URL:', fullUrl); // Print the full URL with parameters
+    // console.log('Request URL:', fullUrl); // Print the full URL with parameters
 
     return await axiosRequest.post(
         baseUrl,
-        { params: Object.fromEntries(queryParams) }, // Pass parameters to the POST body
+        { 
+                
+        },
         {
+            params: queryParams,
             responseType: 'blob', // Ensure we handle binary data
         }
     )
