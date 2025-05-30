@@ -1,70 +1,186 @@
-# Getting Started with Create React App
+# React Cloth Business Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack web application to streamline and automate the operations of a cloth business. This project covers inventory, procurement, sales, product, stakeholder, store, and user management, providing a comprehensive dashboard and reporting tools.
 
-## Available Scripts
+**Frontend:** React.js (this repo)  
+**Backend:** Java Spring Boot ([Backend Repo](https://github.com/ShubratoDn/Cloth-Business-Management-System))
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Folder Structure](#folder-structure)
+- [Environment Variables](#environment-variables)
+- [Scripts](#scripts)
+- [Contribution](#contribution)
+- [License](#license)
+- [Contact](#contact)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Project Overview
 
-### `npm test`
+**Cloth Business Management System** is designed to help cloth businesses manage their operations efficiently. It provides modules for inventory, procurement, sales, product, stakeholder, store, and user management, along with dashboards and reporting tools.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## Tech Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Frontend
+- **React.js** (v18+)
+- **Redux** for state management
+- **React Router** for routing
+- **CoreUI** for UI components and theming
+- **Axios** for API requests
+- **Formik** and **Yup** for forms and validation
+- **Chart.js** for data visualization
+- **React Toastify** for notifications
+- **Sass** for styling
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Backend
+- **Java Spring Boot**  
+  See: [Cloth-Business-Management-System Backend](https://github.com/ShubratoDn/Cloth-Business-Management-System)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## Features
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Dashboard
+- Business KPIs, charts, and quick stats
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Stock Management
+- Stock overview and search
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Procurement Management
+- Create, update, and view purchase orders
+- Purchase history and status updates
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Sales Management
+- Create, update, and view sales
+- Sales history and status updates
 
-## Learn More
+### Product Management
+- Add and search products
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Stakeholder Management
+- Add and manage stakeholders
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Store Management
+- Add, assign, and find stores
 
-### Code Splitting
+### User & Role Management
+- Add users, assign roles, and manage permissions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Other
+- Authentication (login/logout)
+- Error pages (401, 404, 500)
+- Notifications and widgets
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Getting Started
 
-### Making a Progressive Web App
+### Prerequisites
+- Node.js (v16+ recommended)
+- npm or yarn
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Installation
 
-### Advanced Configuration
+```bash
+git clone <this-repo-url>
+cd react-cloth-business-management-system
+npm install
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Running the App
 
-### Deployment
+```bash
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+The app will run at [http://localhost:3000](http://localhost:3000).
 
-### `npm run build` fails to minify
+> **Note:**  
+> Make sure the backend server is running. See [backend instructions](https://github.com/ShubratoDn/Cloth-Business-Management-System).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## Folder Structure
+
+```
+src/
+  ├── assets/                # Images, icons, etc.
+  ├── base/                  # Base UI components
+  ├── buttons/               # Button components
+  ├── charts/                # Chart components
+  ├── components/            # Shared React components
+  ├── configs/               # App configuration files
+  ├── dashboard/             # Dashboard and main chart
+  ├── forms/                 # Form components
+  ├── icons/                 # Icon components
+  ├── layout/                # Layout components (DefaultLayout, etc.)
+  ├── misReport/             # Management Information System reports
+  ├── notifications/         # Notification components
+  ├── pages/                 # Error and auth pages
+  ├── procurementManagement/ # Procurement features
+  ├── productManagement/     # Product features
+  ├── salesManagement/       # Sales features
+  ├── scss/                  # Styles (Sass)
+  ├── services/              # API and business logic
+  ├── stakeholderManagement/ # Stakeholder features
+  ├── stockManagement/       # Stock features
+  ├── storeManagement/       # Store features
+  ├── theme/                 # Theme and style config
+  ├── userManagement/        # User features
+  ├── userRole/              # User role features
+  ├── views/                 # Main views/pages
+  ├── widgets/               # Dashboard widgets
+  ├── App.js                 # Main app entry
+  ├── index.js               # React entry point
+  └── routes.js              # App routes
+```
+
+---
+
+## Environment Variables
+
+If you need to configure API endpoints or other environment-specific settings, create a `.env` file in the root:
+
+```
+REACT_APP_API_URL=http://localhost:8080/api
+```
+
+---
+
+## Scripts
+
+- `npm start` – Start development server
+- `npm run build` – Build for production
+- `npm test` – Run tests
+- `npm run eject` – Eject from Create React App
+
+---
+
+## Contribution
+
+Contributions are welcome! Please fork the repo and submit a pull request.
+
+---
+
+## License
+
+[MIT](LICENSE) (or specify your license)
+
+---
+
+## Contact
+
+For questions or support, please open an issue or contact the maintainer.
+
+---
+
+**Backend Repo:**  
+[https://github.com/ShubratoDn/Cloth-Business-Management-System](https://github.com/ShubratoDn/Cloth-Business-Management-System)

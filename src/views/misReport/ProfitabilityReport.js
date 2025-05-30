@@ -338,7 +338,7 @@ const PurchaseHistory = () => {
                         {data && data.totalElements > 0 && 
                                         <button className='btn btn-success d-flex justify-content-center align-items-center' onClick={handleDownloadExcel} disabled={isDownloading}>
                                             <CIcon icon={cilPrint}></CIcon> &nbsp;
-                                            {isDownloading ? 'Downloading...' : 'PDF'}
+                                            {isDownloading ? 'Downloading...' : 'Excel'}
                                         </button> 
                         }
                     </div>
