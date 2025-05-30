@@ -178,7 +178,9 @@ Contributions are welcome! Please fork the repo and submit a pull request.
 
 ## Contact
 
-For questions or support, please open an issue or contact the maintainer.
+For questions or support, please open an issue or contact me.
+Phone: 01759458961
+Email: shubratodn44985@gmail.com
 
 ---
 
